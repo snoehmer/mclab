@@ -1,18 +1,30 @@
-module Ex2M {
-	provides {
+module Ex2M
+{
+	provides
+	{
 		interface StdControl;
 	}
+	uses
+	{
+		interface StdControl as SenderControl;
+	}
 }
-implementation {
 
-	command result_t StdControl.init() {
+implementation
+{
+
+	command result_t StdControl.init()
+	{
 		return SUCCESS;
 	}
-	command result_t StdControl.start() {
+	
+	command result_t StdControl.start()
+	{
 		return SUCCESS;
 	}
 
-	command result_t StdControl.stop() {
+	command result_t StdControl.stop()
+	{
 		return SUCCESS;
 	}
 

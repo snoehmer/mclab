@@ -1,8 +1,10 @@
 /*
-	provides interfaces to send messages
+	provides interfaces to send broadcast messages
 */
 
 #define SEND_BUFFER_SIZE 10
+
+includes MessageTypes;
 
 module SenderM
 {
@@ -20,50 +22,130 @@ module SenderM
 
 implementation
 {
+	// send buffer stuff
 	TOS_Msg buffer[SEND_BUFFER_SIZE];
 	uint8_t write_pos;
+	uint8_t read_pos;
 	uint8_t size;
 	
+	// helpers for current message
+	bool pending;
 	
-	void buffer_add(TOS_Msg new_msg)
+	
+	result_t buffer_add(TOS_Msg new_msg, uint16_t dest)
 	{
-		if(size >= SEND_BUFFER_SIZE)
+		atomic
 		{
-			dbg(DBG_USR1, "ERROR: Send buffer is full, discarding message\n");
-			return;
+			if(size >= SEND_BUFFER_SIZE)
+			{
+				dbg(DBG_USR1, "SenderM: ERROR: send buffer is full, discarding message\n");
+				return FAIL;
+			}
+			
+			buffer[write_pos] = new_msg;
+			dest_addr[write_pos++] = dest;
+			
+			if(write_pos >= SEND_BUFFER_SIZE)
+				write_pos = 0;
+				
+			size++;
+		}
+			
+		dbg(DBG_USR1, "SenderM: message added to send buffer, dest = \n", dest);
+		return SUCCESS;
+	}
+	
+	result_t buffer_get(TOS_Msg *msg, uint16_t *dest)
+	{
+		atomic
+		{
+			if(size <= 0)
+			{
+				dbg(DBG_USR1, "SenderM: ERROR: send buffer is empty, underflow!\n");
+				return FAIL;
+			}
+			
+			(*msg) = buffer[read_pos];
+			(*dest) = dest_addr[read_pos++];
+			
+			if(read_pos >= SEND_BUFFER_SIZE)
+				read_pos = 0;
+			
+			size--;
 		}
 		
-		buffer[write_pos++] = new_msg;
-		
-		if(write_pos >= SEND_BUFFER_SIZE)
-			write_pos = 0;
-			
-		dbg(DBG_USR1, "message added to send buffer\n");
+		dbg(DBG_USR1, "SenderM: message read from send buffer, dest = %d\n", *dest);
+		return SUCCESS;
 	}
+	
+	bool buffer_isEmpty()
+	{
+		return (size == 0);
+	}
+	
 	
 	command result_t StdControl.init()
 	{
+		// buffer init
 		write_pos = 0;
+		read_pos = 0;
 		size = 0;
+		
+		pending = false;
 		
 		return call SenderControl.init();
 	}
 	
 	command result_t StdControl.start()
 	{
+		pending = FALSE;
 		return call SenderControl.start();
 	}
 	
 	command result_t StdControl.stop()
 	{
+		if(pending)
+			return FAIL;
+		
 		return call SenderControl.stop();
 	}
 	
 	// if the sender is idle, send packet; else queue it in buffer
-	command result_t sendMessage(TOS_Msg new_msg)
+	command result_t MessageSender.sendMessage(TOS_Msg new_msg, uint16_t dest)
 	{
-		if(
+		result_t res;
+		uint8_t nmsg_len;
+		NetworkMsg *nmsg;	
 		
+		if(pending)  // a message is currently being sent, add to buffer
+		{
+			dbg(DBG_USR1, "SenderM: sendMessage got new Msg, pending, add to buffer\n");
+			
+			res = buffer_add(new_msg, dest);
+			
+			if(res != SUCCESS)
+			{
+				dbg(DBG_USR1, "SenderM: sendMessage failed to add to buffer, exiting\n");
+				return res;
+			}
+		}
+		else  // no message is currently being sent, send directly
+		{
+			dbg(DBG_USR1, "SenderM: sendMessage got new Msg, not pending, sending\n");
+			
+			pending = TRUE;
+			
+			// determine data length
+			nmsg = (NetworkMsg*) new_msg.data;
+			if(nmsg->msg_type == MSG_TYPE_BCAST)
+				nmsg_len = sizeof(BroadcastMsg) + sizeof(uint8_t);
+			else if(nmsg->msg_type == MSG_TYPE_DATA)
+				nmsg_len = sizeof(DataMsg) + sizeof(uint8_t);
+			
+			res = call SendMsg.send(dest, nmsg_len, &new_msg);
+		}
+		
+		return SUCCESS;
 	}
 	
 	// send remaining packets from buffer
