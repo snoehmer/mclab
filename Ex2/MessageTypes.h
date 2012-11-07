@@ -24,7 +24,7 @@ typedef struct SimpleDataMsg
 	uint8_t data2;
 	uint8_t data3;
 	uint8_t data4;
-} DataMsg;
+} SimpleDataMsg;
 
 
 enum
