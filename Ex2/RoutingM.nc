@@ -57,6 +57,7 @@ implementation
 	
 	command result_t RoutingNetwork.issueBroadcast(uint8_t basestation_id)
 	{
+		dbg(DBG_USR1, "RoutingM: Broadcast issued with basestation_id = \n", basestation_id);
 		TOS_Msg new_broadcast = call PacketHandler.assembleBroadcastMessage(basestation_id, sequence_number++, 0);
 		return call MessageSender.sendMessage(new_broadcast, TOS_BCAST_ADDR);
 	}
@@ -76,10 +77,12 @@ implementation
 					// update entry
 					routingtable[idx][HOP_COUNT_INDEX] = hop_count;
 					routingtable[idx][MOTE_ID_INDEX] = call PacketHandler.getSrc(nmsg);
+					dbg(DBG_USR1, "RoutingM: Updating Routingtable entry for basestation_id = \n", routingtable[idx][BS_ID_INDEX]);
 				}
+				else dbg(DBG_USR1, "RoutingM: No update to routingtable due to higher hop_count to basestation_id = \n", routingtable[idx][BS_ID_INDEX]);
 			}
 			else
-			{
+			{			
 				// add new entry to RT
 				routingtable[rt_idx][BS_ID_INDEX] =  call PacketHandler.getBasestationID(nmsg);
 				routingtable[rt_idx][HOP_COUNT_INDEX] =  call PacketHandler.getHopcount(nmsg);
@@ -87,18 +90,24 @@ implementation
 			
 				if(rt_idx >= MAX_RT_ENTRIES)
 					rt_idx = 0;
+					
+				dbg(DBG_USR1, "RoutingM: New Routingtable entry for basestation_id = \n", routingtable[rt_idx-1][BS_ID_INDEX]);
 			}
-				
+						
 			old_hop_count = call PacketHandler.getHopcount(nmsg);
 			call PacketHandler.setHopcount(nmsg, ++old_hop_count);
 			call PacketHandler.setSrc(nmsg, TOS_LOCAL_ADDRESS);
 			return call MessageSender.sendMessage(*nmsg, TOS_BCAST_ADDR);
 		}
+		
+		dbg(DBG_USR1, "RoutingM: Discarded Message due to old sequence number\n");
+		
 		return FAIL;
 	}
 	
 	command result_t RoutingNetwork.sendDataMsg(uint8_t dest, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
 	{
+		dbg(DBG_USR1, "RoutingM: Sending data message to dest = \n", dest);
 		TOS_Msg new_data_msg = call PacketHandler.assembleDataMessage(dest, data1, data2, data3, data4);
 		uint8_t idx = call RoutingNetwork.isKnownBasestation(dest);
 		if(idx < MAX_RT_ENTRIES)
@@ -110,6 +119,7 @@ implementation
 	{
 		uint16_t dest = call PacketHandler.getBasestationID(nmsg); 
 		uint8_t idx = call RoutingNetwork.isKnownBasestation(dest);
+		dbg(DBG_USR1, "RoutingM: Forward data message to MoteID = \n", routingtable[idx][MOTE_ID_INDEX]);
 		if(idx < MAX_RT_ENTRIES)
 			return call MessageSender.sendMessage(*nmsg, routingtable[idx][MOTE_ID_INDEX]);
 		else return FAIL;
@@ -127,6 +137,8 @@ implementation
 	
 	event result_t MessageReceiver.receivedMessage(TOS_Msg new_msg)
 	{
+		dbg(DBG_USR1, "RoutingM: Received a new Message, event MessageReceiver.receivedMessage triggered.\n");
+
 		if(call PacketHandler.getMsgType(&new_msg) == MSG_TYPE_BCAST)
 		{
 			// received a broadcast, process it
