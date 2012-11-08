@@ -42,12 +42,12 @@ implementation
 		{			
 			if( dest == TOS_BCAST_ADDR || dest == TOS_LOCAL_ADDRESS)
 			{
-				uint16_t msg_seq = call PacketDisassembler.getSequenceNumber(&new_msg);
+				uint16_t msg_seq = call PacketHander.getSequenceNumber(&new_msg);
 				if( msg_seq > sequence_no )
 				{
 					buffer[write_pos++] = new_msg;
 					size++;
-					sequence_no = msq_seq;
+					sequence_no = msg_seq;
 				
 					if(write_pos >= RECEIVE_BUFFER_SIZE)
 						write_pos = 0;
@@ -120,5 +120,13 @@ implementation
 	{		
 		return call ReceiverControl.stop();
 	}
+	
+	event TOS_MsgPtr ReceiveMsg.receive(TOS_MsgPtr m) {
+		TOS_Msg *message = (TOS_Msg *)m->data;
+		uint16_t dest = message->addr;
+    	call buffer_add(message, dest);
+
+	    return m;
+  	}
 	
 }
