@@ -15,7 +15,7 @@ module ReceiverM
 	uses
 	{
 		interface StdControl as ReceiverControl;
-		//interface ReceiveMsg;
+		interface ReceiveMsg;
 	}
 }
 
@@ -27,7 +27,6 @@ implementation
 	uint8_t read_pos;
 	uint8_t size;
 	
-	uint16_t my_adr;	
 	uint16_t sequence_no;
 	
 	
@@ -41,7 +40,7 @@ implementation
 		
 		atomic
 		{			
-			if( dest == TOS_BCAST_ADDR || dest == my_adr)
+			if( dest == TOS_BCAST_ADDR || dest == TOS_LOCAL_ADDRESS)
 			{
 				uint16_t msg_seq = call PacketDisassembler.getSequenceNumber(&new_msg);
 				if( msg_seq > sequence_no )
@@ -107,21 +106,6 @@ implementation
 		
 		// interface init
 		sequence_no = 0;
-		my_adr = 0;
-		
-		return call ReceiverControl.init();
-	}
-	
-	command result_t ReceiverControl.init(uint16_t adress)
-	{
-		// buffer init
-		write_pos = 0;
-		read_pos = 0;
-		size = 0;
-		
-		// interface init
-		sequence_no = 0;
-		my_adr = adress;
 		
 		return call ReceiverControl.init();
 	}

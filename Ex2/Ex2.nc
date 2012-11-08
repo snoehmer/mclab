@@ -13,6 +13,6 @@ implementation {
 	
 	Ex2M.StdControl -> ReceiverM.StdControl;
 	ReceiverM.ReceiverControl -> GenericComm;
-	ReceiverM.ReceiveMsg  -> GenericComm.ReceiveMsg;
+	ReceiverM.ReceiveMsg  -> GenericComm.ReceiveMsg[AM_NETMSG];
 
 }

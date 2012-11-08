@@ -5,14 +5,12 @@
 #define SEND_BUFFER_SIZE 10
 
 includes MessageTypes;
-includes HopMsg;
 
 module SenderM
 {
 	provides
 	{
-		interface PacketAssembler;
-		interface PacketDisassembler;
+		interface PacketHandler;
 		interface StdControl;
 	}
 	uses
@@ -23,57 +21,58 @@ module SenderM
 
 implementation
 {
-	command uint16_t PacketDisassembler.getSequenceNumber(TOS_Msg *msg)
+	command uint16_t PacketHandler.getSequenceNumber(TOS_Msg *msg)
 	{	
-		HopMsg *message = (HopMsg *)msg->data;	
-		return message->sequence_number;
+		BroadcastMsg *message = (BroadcastMsg *)msg->data;	
+		return message->seq_nr;
 	}
 	
-	command uint16_t PacketDisassembler.getHopcount(TOS_Msg *msg)
+	command uint16_t PacketHandler.getHopcount(TOS_Msg *msg)
 	{	
-		HopMsg *message = (HopMsg *)msg->data;	
-		return message->hopcount;
+		BroadcastMsg *message = (BroadcastMsg *)msg->data;	
+		return message->hop_count;
 	}
 	
-	command uint16_t PacketDisassembler.getSrc(TOS_Msg *msg)
+	command uint16_t PacketHandler.getSrc(TOS_Msg *msg)
 	{	
-		HopMsg *message = (HopMsg *)msg->data;	
-		return message->src;
+		BroadcastMsg *message = (BroadcastMsg *)msg->data;	
+		return message->sender_addr;
 	}
 	
-	command TOS_Msg PacketAssembler.assembleMessage(uint16_t my_adr, uint16_t sequence_number, uint16_t hopcount)
+	command TOS_Msg PacketHandler.assembleMessage(uint16_t my_adr, uint16_t sequence_number, uint16_t hopcount, uint16_t base_id)
 	{
 		// TODO
 		TOS_Msg new_TOS_message;
-		HopMsg new_hop_message;
+		BroadcastMsg new_broadcast_message;
 		
-		new_hop_message.src = myadr;
-		new_hop_message.sequence_number = sequence_number;
-		new_hop_message.hopcount = hopcount;
+		new_hop_message.sender_addr = myadr;
+		new_hop_message.seq_nr = sequence_number;
+		new_hop_message.hop_count = hopcount;
+		new_hop_message.basestation_id = base_id;
 		
 		new_TOS_message.data = (uint16_t)new_hop_message;
 		
 		return new_TOS_message;
 	}
 	
-	command result_t PacketAssembler.setSequenceNumber(TOS_Msg *msg, uint16_t new_sequence_number)
+	command result_t PacketHandler.setSequenceNumber(TOS_Msg *msg, uint16_t new_sequence_number)
 	{	
-		HopMsg *message = (HopMsg *)msg->data;	
-		message->sequence_number = new_sequence_number;
+		BroadcastMsg *message = (BroadcastMsg *)msg->data;	
+		message->seq_nr = new_sequence_number;
 		return SUCCESS;
 	}
 	
-	command result_t PacketAssembler.setHopcount(TOS_Msg *msg, uint16_t new_hopcount)
+	command result_t PacketHandler.setHopcount(TOS_Msg *msg, uint16_t new_hopcount)
 	{	
-		HopMsg *message = (HopMsg *)msg->data;	
-		message->hopcount = new_hopcount;
+		BroadcastMsg *message = (BroadcastMsg *)msg->data;	
+		message->hop_count = new_hopcount;
 		return SUCCESS;
 	}
 	
-	command result_t PacketAssembler.setSrc(TOS_Msg *msg, uint16_t new_src)
+	command result_t PacketHandler.setSrc(TOS_Msg *msg, uint16_t new_src)
 	{	
-		HopMsg *message = (HopMsg *)msg->data;	
-		message->src = new_src;
+		BroadcastMsg *message = (BroadcastMsg *)msg->data;	
+		message->sender_addr = new_src;
 		return SUCCESS;
 	}
 	

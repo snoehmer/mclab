@@ -2,7 +2,7 @@
    this header contains the struct definitions for different message types
 */
 
-typedef struct NetworkMsg
+/*typedef struct NetworkMsg
 {
 	uint8_t msg_type;
 	uint8_t *payload;
@@ -25,10 +25,10 @@ typedef struct SimpleDataMsg
 	uint8_t data3;
 	uint8_t data4;
 } SimpleDataMsg;
-
+*/
 enum
 {
-	AM_NETMSG = 5;
-	MSG_TYPE_BCAST = 1;
-	MSG_TYPE_DATA = 2;
+	AM_NETMSG = 5,
+	MSG_TYPE_BCAST = 1,
+	MSG_TYPE_DATA = 2,
 };
