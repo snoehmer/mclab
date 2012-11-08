@@ -12,10 +12,6 @@ module RoutingM
 	{
 		interface StdControl;
 	}
-	uses
-	{
-		interface StdControl as RoutingControl;
-	}
 }
 
 implementation
@@ -27,13 +23,12 @@ implementation
 	
 	command result_t StdControl.start()
 	{
-		pending = FALSE;
-		return call ReceiverControl.start();
+		return SUCCESS;
 	}
 	
 	command result_t StdControl.stop()
 	{		
-		return call ReceiverControl.stop();
+		return SUCCESS;
 	}
 }
 

@@ -115,9 +115,7 @@ implementation
 	// if the sender is idle, send packet; else queue it in buffer
 	command result_t MessageSender.sendMessage(TOS_Msg new_msg, uint16_t dest)
 	{
-		result_t res;
-		uint8_t nmsg_len;
-		NetworkMsg *nmsg;	
+		result_t res;	
 		
 		if(pending)  // a message is currently being sent, add to buffer
 		{
@@ -141,15 +139,8 @@ implementation
 				pending = TRUE;
 			}
 			
-			// determine data length
-			nmsg = (NetworkMsg*) new_msg.data;
-			if(nmsg->msg_type == MSG_TYPE_BCAST)
-				nmsg_len = sizeof(BroadcastMsg) + sizeof(uint8_t);
-			else if(nmsg->msg_type == MSG_TYPE_DATA)
-				nmsg_len = sizeof(SimpleDataMsg) + sizeof(uint8_t);
-			
 			current_msg = &new_msg;
-			res = call SendMsg.send(dest, nmsg_len, &new_msg);
+			res = call SendMsg.send(dest, sizeof(NetworkMsg), &new_msg);
 		}
 		
 		return SUCCESS;
@@ -161,8 +152,6 @@ implementation
   		result_t res;
   		TOS_Msg next_msg;
   		uint16_t dest;
-  		NetworkMsg *nmsg;
-  		uint8_t nmsg_len;
   		
     	if(pending && msg == current_msg)  // current message sent successfully
       	{
@@ -183,16 +172,9 @@ implementation
 					dbg(DBG_USR1, "SenderM: sendDone tried to send next message, failed\n");
 					return res;
 				}
-				
-				// determine data length
-				nmsg = (NetworkMsg*) next_msg.data;
-				if(nmsg->msg_type == MSG_TYPE_BCAST)
-					nmsg_len = sizeof(BroadcastMsg) + sizeof(uint8_t);
-				else if(nmsg->msg_type == MSG_TYPE_DATA)
-					nmsg_len = sizeof(SimpleDataMsg) + sizeof(uint8_t);
 			
 				current_msg = &next_msg;
-				res = call SendMsg.send(dest, nmsg_len, &next_msg);
+				res = call SendMsg.send(dest, sizeof(NetworkMsg), &next_msg);
 			}
       	}
     
