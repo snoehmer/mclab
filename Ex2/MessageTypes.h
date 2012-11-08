@@ -26,7 +26,6 @@ typedef struct SimpleDataMsg
 	uint8_t data4;
 } SimpleDataMsg;
 
-
 enum
 {
 	AM_NETMSG = 5;

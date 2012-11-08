@@ -1,3 +1,5 @@
+includes MessageTypes;
+
 configuration Ex2 {
 }
 implementation {
@@ -9,5 +11,8 @@ implementation {
 	SenderM.SenderControl -> GenericComm;
 	SenderM.SendMsg -> GenericComm.SendMsg[AM_NETMSG];
 	
+	Ex2M.StdControl -> ReceiverM.StdControl;
+	ReceiverM.ReceiverControl -> GenericComm;
+	ReceiverM.ReceiveMsg  -> GenericComm.ReceiveMsg;
 
 }

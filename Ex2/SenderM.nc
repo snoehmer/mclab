@@ -34,14 +34,14 @@ implementation
 	
 	result_t buffer_add(TOS_Msg new_msg, uint16_t dest)
 	{
-		atomic
+		if(size >= SEND_BUFFER_SIZE)
 		{
-			if(size >= SEND_BUFFER_SIZE)
-			{
-				dbg(DBG_USR1, "SenderM: ERROR: send buffer is full, discarding message\n");
-				return FAIL;
-			}
+			dbg(DBG_USR1, "SenderM: ERROR: send buffer is full, discarding message\n");
+			return FAIL;
+		}
 			
+		atomic
+		{			
 			buffer[write_pos] = new_msg;
 			dest_addr[write_pos++] = dest;
 			
@@ -57,14 +57,14 @@ implementation
 	
 	result_t buffer_get(TOS_Msg *msg, uint16_t *dest)
 	{
-		atomic
+		if(size <= 0)
 		{
-			if(size <= 0)
-			{
-				dbg(DBG_USR1, "SenderM: ERROR: send buffer is empty, underflow!\n");
-				return FAIL;
-			}
+			dbg(DBG_USR1, "SenderM: ERROR: send buffer is empty, underflow!\n");
+			return FAIL;
+		}
 			
+		atomic
+		{			
 			(*msg) = buffer[read_pos];
 			(*dest) = dest_addr[read_pos++];
 			
@@ -153,8 +153,8 @@ implementation
   	{
     	if(pending && msg == &data)
       	{
-		pending = FALSE;
-		signal IntOutput.outputComplete(success);
+			pending = FALSE;
+			signal IntOutput.outputComplete(success);
       	}
     
     	return SUCCESS;
