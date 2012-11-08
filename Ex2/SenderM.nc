@@ -24,12 +24,14 @@ implementation
 {
 	// send buffer stuff
 	TOS_Msg buffer[SEND_BUFFER_SIZE];
+	uint16_t dest_addr[SEND_BUFFER_SIZE];
 	uint8_t write_pos;
 	uint8_t read_pos;
 	uint8_t size;
 	
 	// helpers for current message
 	bool pending;
+	TOS_MsgPtr current_msg;
 	
 	
 	result_t buffer_add(TOS_Msg new_msg, uint16_t dest)
@@ -91,7 +93,7 @@ implementation
 		read_pos = 0;
 		size = 0;
 		
-		pending = false;
+		pending = FALSE;
 		
 		return call SenderControl.init();
 	}
@@ -119,7 +121,7 @@ implementation
 		
 		if(pending)  // a message is currently being sent, add to buffer
 		{
-			dbg(DBG_USR1, "SenderM: sendMessage got new Msg, pending, add to buffer\n");
+			dbg(DBG_USR1, "SenderM: sendMessage got new Msg, pending, add to buffer (dest = %d)\n", dest);
 			
 			res = buffer_add(new_msg, dest);
 			
@@ -131,17 +133,22 @@ implementation
 		}
 		else  // no message is currently being sent, send directly
 		{
-			dbg(DBG_USR1, "SenderM: sendMessage got new Msg, not pending, sending\n");
+			dbg(DBG_USR1, "SenderM: sendMessage got new Msg, not pending, sending (dest = %d)\n", dest);
 			
-			pending = TRUE;
+			atomic
+			{
+				current_msg = &new_msg;
+				pending = TRUE;
+			}
 			
 			// determine data length
 			nmsg = (NetworkMsg*) new_msg.data;
 			if(nmsg->msg_type == MSG_TYPE_BCAST)
 				nmsg_len = sizeof(BroadcastMsg) + sizeof(uint8_t);
 			else if(nmsg->msg_type == MSG_TYPE_DATA)
-				nmsg_len = sizeof(DataMsg) + sizeof(uint8_t);
+				nmsg_len = sizeof(SimpleDataMsg) + sizeof(uint8_t);
 			
+			current_msg = &new_msg;
 			res = call SendMsg.send(dest, nmsg_len, &new_msg);
 		}
 		
@@ -151,10 +158,42 @@ implementation
 	// send remaining packets from buffer
 	event result_t SendMsg.sendDone(TOS_MsgPtr msg, result_t success)
   	{
-    	if(pending && msg == &data)
+  		result_t res;
+  		TOS_Msg next_msg;
+  		uint16_t dest;
+  		NetworkMsg *nmsg;
+  		uint8_t nmsg_len;
+  		
+    	if(pending && msg == current_msg)  // current message sent successfully
       	{
-			pending = FALSE;
-			signal IntOutput.outputComplete(success);
+      		if(buffer_isEmpty())  // no more messages, feierabend for now
+      		{
+				pending = FALSE;
+				
+				dbg(DBG_USR1, "SenderM: sendDone for last message, feierabend for now\n");
+			}
+			else  // buffer holds more messages, send those
+			{	
+				res = buffer_get(&next_msg, &dest);
+				
+				dbg(DBG_USR1, "SenderM: sendDone with pending messages, sending message (dest = %d)\n", dest);
+				
+				if(res != SUCCESS)  // reading from buffer failed
+				{
+					dbg(DBG_USR1, "SenderM: sendDone tried to send next message, failed\n");
+					return res;
+				}
+				
+				// determine data length
+				nmsg = (NetworkMsg*) next_msg.data;
+				if(nmsg->msg_type == MSG_TYPE_BCAST)
+					nmsg_len = sizeof(BroadcastMsg) + sizeof(uint8_t);
+				else if(nmsg->msg_type == MSG_TYPE_DATA)
+					nmsg_len = sizeof(SimpleDataMsg) + sizeof(uint8_t);
+			
+				current_msg = &next_msg;
+				res = call SendMsg.send(dest, nmsg_len, &next_msg);
+			}
       	}
     
     	return SUCCESS;
