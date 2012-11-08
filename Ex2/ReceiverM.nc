@@ -16,6 +16,7 @@ module ReceiverM
 	{
 		interface StdControl as ReceiverControl;
 		interface ReceiveMsg;
+		interface PacketHandler;
 	}
 }
 
@@ -42,7 +43,7 @@ implementation
 		{			
 			if( dest == TOS_BCAST_ADDR || dest == TOS_LOCAL_ADDRESS)
 			{
-				uint16_t msg_seq = call PacketHander.getSequenceNumber(&new_msg);
+				uint16_t msg_seq = call PacketHandler.getSequenceNumber(&new_msg);
 				if( msg_seq > sequence_no )
 				{
 					buffer[write_pos++] = new_msg;
@@ -56,7 +57,7 @@ implementation
 				}
 				else
 				{
-					dbg(DBG_USR1, "ReceiverM: message sequence number lower than last received, msg_sequence = ", msq_seq);	
+					dbg(DBG_USR1, "ReceiverM: message sequence number lower than last received, msg_sequence = ", msg_seq);	
 					dbg(DBG_USR1, "; sequence_no = \n", sequence_no);	
 				}
 									
@@ -112,7 +113,6 @@ implementation
 	
 	command result_t StdControl.start()
 	{
-		pending = FALSE;
 		return call ReceiverControl.start();
 	}
 	
@@ -124,7 +124,8 @@ implementation
 	event TOS_MsgPtr ReceiveMsg.receive(TOS_MsgPtr m) {
 		TOS_Msg *message = (TOS_Msg *)m->data;
 		uint16_t dest = message->addr;
-    	call buffer_add(message, dest);
+    	
+    	buffer_add(*message, dest);
 
 	    return m;
   	}
