@@ -57,8 +57,12 @@ implementation
 	
 	command result_t RoutingNetwork.issueBroadcast(uint8_t basestation_id)
 	{
+		TOS_Msg new_broadcast;
+		
 		dbg(DBG_USR1, "RoutingM: Broadcast issued with basestation_id = \n", basestation_id);
-		TOS_Msg new_broadcast = call PacketHandler.assembleBroadcastMessage(basestation_id, sequence_number++, 0);
+		
+		new_broadcast = call PacketHandler.assembleBroadcastMessage(basestation_id, sequence_number++, 0);
+		
 		return call MessageSender.sendMessage(new_broadcast, TOS_BCAST_ADDR);
 	}
 	
@@ -107,9 +111,11 @@ implementation
 	
 	command result_t RoutingNetwork.sendDataMsg(uint8_t dest, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
 	{
-		dbg(DBG_USR1, "RoutingM: Sending data message to dest = \n", dest);
 		TOS_Msg new_data_msg = call PacketHandler.assembleDataMessage(dest, data1, data2, data3, data4);
 		uint8_t idx = call RoutingNetwork.isKnownBasestation(dest);
+		
+		dbg(DBG_USR1, "RoutingM: Sending data message to dest = \n", dest);
+		
 		if(idx < MAX_RT_ENTRIES)
 			return call MessageSender.sendMessage(new_data_msg, routingtable[idx][MOTE_ID_INDEX]);
 		else return FAIL;
