@@ -21,6 +21,7 @@ module RoutingM
 	{
 		interface MessageSender;
 		interface MessageReceiver;
+		interface PacketHandler;
 	}
 }
 
@@ -57,15 +58,15 @@ implementation
 	command result_t RoutingNetwork.issueBroadcast(uint8_t basestation_id)
 	{
 		TOS_Msg new_broadcast = call PacketHandler.assembleBroadcastMessage(basestation_id, sequence_number++, 0);
-		return MessageSender.sendMessage(new_broadcast, TOS_BCAST_ADDR);
+		return call MessageSender.sendMessage(new_broadcast, TOS_BCAST_ADDR);
 	}
 	
 	command result_t RoutingNetwork.forwardBroadcast(TOS_Msg *nmsg)
 	{
 		if( call PacketHandler.getSequenceNumber(nmsg) > sequence_number )
 		{
-			uint16_t src = call PacketHandler.getSrc(nmsg);
 			uint8_t idx = call RoutingNetwork.isKnownBasestation(call PacketHandler.getBasestationID(nmsg));
+			uint16_t old_hop_count = 0;
 			
 			if(idx < MAX_RT_ENTRIES)
 			{
@@ -88,11 +89,12 @@ implementation
 					rt_idx = 0;
 			}
 				
-			uint16_t old_hop_count = call PacketHandler.getHopcount(nmsg);
+			old_hop_count = call PacketHandler.getHopcount(nmsg);
 			call PacketHandler.setHopcount(nmsg, ++old_hop_count);
 			call PacketHandler.setSrc(nmsg, TOS_LOCAL_ADDRESS);
-			return MessageSender.sendMessage(nmsg, TOS_BCAST_ADDR);
+			return call MessageSender.sendMessage(*nmsg, TOS_BCAST_ADDR);
 		}
+		return FAIL;
 	}
 	
 	command result_t RoutingNetwork.sendDataMsg(uint8_t dest, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
@@ -100,7 +102,7 @@ implementation
 		TOS_Msg new_data_msg = call PacketHandler.assembleDataMessage(dest, data1, data2, data3, data4);
 		uint8_t idx = call RoutingNetwork.isKnownBasestation(dest);
 		if(idx < MAX_RT_ENTRIES)
-			return MessageSender.sendMessage(new_data_msg, routingtable[idx][MOTE_ID_INDEX]);
+			return call MessageSender.sendMessage(new_data_msg, routingtable[idx][MOTE_ID_INDEX]);
 		else return FAIL;
 	}
 	
@@ -109,8 +111,8 @@ implementation
 		uint16_t dest = call PacketHandler.getBasestationID(nmsg); 
 		uint8_t idx = call RoutingNetwork.isKnownBasestation(dest);
 		if(idx < MAX_RT_ENTRIES)
-			return MessageSender.sendMessage(nmsg, routingtable[idx][MOTE_ID_INDEX]);
-		else return FAILED;
+			return call MessageSender.sendMessage(*nmsg, routingtable[idx][MOTE_ID_INDEX]);
+		else return FAIL;
 	}
 	
 	command uint8_t RoutingNetwork.isKnownBasestation(uint8_t basestation_id)
@@ -125,9 +127,9 @@ implementation
 	
 	event result_t MessageReceiver.receivedMessage(TOS_Msg new_msg)
 	{
-		if(PacketHandler.getMsgType(&new_msg) == MSG_TYPE_BCAST)
-			return call RoutingNetwork.forwardBroadcast(new_msg); 
-		else return call RoutingNetwork.forwardDataMsg(new_msg);
+		if(call PacketHandler.getMsgType(&new_msg) == MSG_TYPE_BCAST)
+			return call RoutingNetwork.forwardBroadcast(&new_msg); 
+		else return call RoutingNetwork.forwardDataMsg(&new_msg);
 	}
 }
 

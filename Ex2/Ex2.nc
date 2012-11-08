@@ -20,5 +20,5 @@ implementation {
 	ReceiverM.ReceiverControl -> GenericComm;
 	ReceiverM.ReceiveMsg  -> GenericComm.ReceiveMsg[AM_NETMSG];
 	
-
+	PacketM.PacketHandler <- RoutingM.PacketHandler;
 }
