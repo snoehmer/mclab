@@ -7,6 +7,7 @@ module Ex2M
 	uses
 	{
 		interface StdControl as SenderControl;
+		interface RoutingNetwork;
 	}
 }
 
@@ -28,4 +29,8 @@ implementation
 		return SUCCESS;
 	}
 
+	event result_t RoutingNetwork.receivedDataMsg(uint8_t src, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
+	{
+		return SUCCESS;
+	}
 }

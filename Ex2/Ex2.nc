@@ -7,6 +7,11 @@ implementation {
 	
 	Main.StdControl -> Ex2M.StdControl;
 	
+	//Ex2M.StdControl -> RoutingM.StdControl;
+	Ex2M.RoutingNetwork -> RoutingM.RoutingNetwork;
+	RoutingM.MessageSender -> SenderM.MessageSender;
+	RoutingM.MessageReceiver -> ReceiverM.MessageReceiver;
+	
 	//Ex2M.StdControl -> SenderM.StdControl;
 	SenderM.SenderControl -> GenericComm;
 	SenderM.SendMsg -> GenericComm.SendMsg[AM_NETMSG];
@@ -14,5 +19,6 @@ implementation {
 	//Ex2M.StdControl -> ReceiverM.StdControl;
 	ReceiverM.ReceiverControl -> GenericComm;
 	ReceiverM.ReceiveMsg  -> GenericComm.ReceiveMsg[AM_NETMSG];
+	
 
 }

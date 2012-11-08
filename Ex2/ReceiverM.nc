@@ -11,6 +11,7 @@ module ReceiverM
 	provides
 	{
 		interface StdControl;
+		interface MessageReceiver;
 	}
 	uses
 	{
@@ -28,10 +29,8 @@ implementation
 	uint8_t read_pos;
 	uint8_t size;
 	
-	uint16_t sequence_no;
 	
-	
-	result_t buffer_add(TOS_Msg new_msg, uint16_t dest)
+	result_t buffer_add(TOS_Msg new_msg)
 	{
 		if(size >= RECEIVE_BUFFER_SIZE)
 		{
@@ -47,7 +46,7 @@ implementation
 			if(write_pos >= RECEIVE_BUFFER_SIZE)
 				write_pos = 0;
 							
-			dbg(DBG_USR1, "ReceiverM: message added to receive buffer, new sequence number = \n", sequence_no);		
+			dbg(DBG_USR1, "ReceiverM: message added to receive buffer, src = %d\n", new_msg.addr);		
 		}
 			
 		return SUCCESS;
@@ -57,7 +56,7 @@ implementation
 	{
 		if(size <= 0)
 		{
-			dbg(DBG_USR1, "ReceiveM: ERROR: send buffer is empty, underflow!\n");
+			dbg(DBG_USR1, "ReceiveM: ERROR: receive buffer is empty, underflow!\n");
 			return FAIL;
 		}
 		
@@ -71,7 +70,7 @@ implementation
 			size--;
 		}
 		
-		dbg(DBG_USR1, "ReceiveM: message read from receive buffer\n");
+		dbg(DBG_USR1, "ReceiveM: message read from receive buffer, src = %d\n", msg->addr);
 		return SUCCESS;
 	}
 	
@@ -100,12 +99,37 @@ implementation
 		return call ReceiverControl.stop();
 	}
 	
-	event TOS_MsgPtr ReceiveMsg.receive(TOS_MsgPtr m) {
-		TOS_Msg *message = (TOS_Msg *)m->data;
-		uint16_t dest = message->addr;
-    	
-    	buffer_add(*message, dest);
+	// reads the received packet and performs proper actions
+	task void receivedMsgTask()
+	{
+		result_t res;
+		TOS_Msg new_msg;
+		
+		// get new message from buffer
+		res = buffer_get(&new_msg);
+		
+		// TODO: discard message on special reasons?
+		
+		// signal event to process message
+		signal MessageReceiver.receivedMessage(new_msg);
+	}
+	
+	event TOS_MsgPtr ReceiveMsg.receive(TOS_MsgPtr m)
+	{
+		result_t res;
+		
+		// add new message to buffer to process it later
+		res = buffer_add(*m);
+		
+		if(res != SUCCESS)
+		{
+			dbg(DBG_USR1, "ReceiverM: receive could not add new message to buffer!\n");
+			return m;
+		}
 
+		// now schedule processing of new package
+		post receivedMsgTask();
+		
 	    return m;
   	}
 	
