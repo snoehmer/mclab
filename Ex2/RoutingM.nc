@@ -2,8 +2,6 @@
 	provides interfaces to receive messages
 */
 
-#define RECEIVE_BUFFER_SIZE 10
-
 includes MessageTypes;
 
 module RoutingM
@@ -66,6 +64,42 @@ implementation
 	
 	event result_t MessageReceiver.receivedMessage(TOS_Msg new_msg)
 	{
+		result_t res;
+		NetworkMsg *nmsg = (NetworkMsg*) new_msg.data;
+		BroadcastMsg *bmsg;
+		SimpleDataMsg *dmsg;
+		
+		// check type of received message
+		if(nmsg->msg_type == MSG_TYPE_BCAST)
+		{
+			bmsg = &(nmsg->bmsg);
+			
+			// received message is a broadcast, update routing table
+			// TODO
+			
+		}
+		else if(nmsg->msg_type == MSG_TYPE_DATA)
+		{
+			dmsg = &(nmsg->dmsg);
+			
+			// received a data packet, check if I am the destination
+			if(new_msg.addr == TOS_LOCAL_ADDRESS)
+			{
+				// I am the destination, forward to application
+				signal RoutingNetwork.receivedDataMsg(dmsg->src_addr, dmsg->data1, dmsg->data2, dmsg->data3, dmsg->data4);
+				
+				return SUCCESS;
+			}
+			// now check if we know the destination (base station)
+			//TODO: else if(
+			
+		}
+		else  // unknown message received
+		{
+			dbg(DBG_USR1, "RoutingM: received unknown message type, ignoring!\n");
+			return SUCCESS;
+		}
+		
 		return SUCCESS;
 	}
 }

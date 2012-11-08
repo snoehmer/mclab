@@ -36,5 +36,5 @@ enum
 {
 	AM_NETMSG = 5,
 	MSG_TYPE_BCAST = 1,
-	MSG_TYPE_DATA = 2,
+	MSG_TYPE_DATA = 2
 };
