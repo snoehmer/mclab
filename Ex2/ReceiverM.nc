@@ -41,31 +41,13 @@ implementation
 		
 		atomic
 		{			
-			if( dest == TOS_BCAST_ADDR || dest == TOS_LOCAL_ADDRESS)
-			{
-				uint16_t msg_seq = call PacketHandler.getSequenceNumber(&new_msg);
-				if( msg_seq > sequence_no )
-				{
-					buffer[write_pos++] = new_msg;
-					size++;
-					sequence_no = msg_seq;
+			buffer[write_pos++] = new_msg;
+			size++;
 				
-					if(write_pos >= RECEIVE_BUFFER_SIZE)
-						write_pos = 0;
-								
-					dbg(DBG_USR1, "ReceiverM: message added to receive buffer, new sequence number = \n", sequence_no);		
-				}
-				else
-				{
-					dbg(DBG_USR1, "ReceiverM: message sequence number lower than last received, msg_sequence = ", msg_seq);	
-					dbg(DBG_USR1, "; sequence_no = \n", sequence_no);	
-				}
-									
-			}
-			else
-			{
-				dbg(DBG_USR1, "ReceiverM: message adressed to other node, messge ignored; dest = \n", dest);			
-			}
+			if(write_pos >= RECEIVE_BUFFER_SIZE)
+				write_pos = 0;
+							
+			dbg(DBG_USR1, "ReceiverM: message added to receive buffer, new sequence number = \n", sequence_no);		
 		}
 			
 		return SUCCESS;
@@ -104,9 +86,6 @@ implementation
 		write_pos = 0;
 		read_pos = 0;
 		size = 0;
-		
-		// interface init
-		sequence_no = 0;
 		
 		return call ReceiverControl.init();
 	}
