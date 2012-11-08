@@ -4,6 +4,7 @@
 
 interface PacketHandler
 {
+	command uint8_t getMsgType(TOS_Msg *msg);
 	command uint16_t getBasestationID(TOS_Msg *msg);
 	command uint16_t getSequenceNumber(TOS_Msg *msg);
 	command uint16_t getHopcount(TOS_Msg *msg);

@@ -14,6 +14,12 @@ module PacketM
 
 implementation
 {
+	command uint8_t PacketHandler.getMsgType(TOS_Msg *msg)
+	{
+		NetworkMsg *message = (NetworkMsg *) msg->data;	
+		return message->msg_type;
+	}
+	
 	command uint16_t PacketHandler.getBasestationID(TOS_Msg *msg)
 	{	
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
