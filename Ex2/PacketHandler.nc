@@ -2,6 +2,8 @@
 	the interface used for sending messages
 */
 
+includes AM;
+
 interface PacketHandler
 {
 	command uint8_t getMsgType(TOS_Msg *msg);

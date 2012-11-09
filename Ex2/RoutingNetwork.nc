@@ -3,6 +3,7 @@
 **/
 
 includes MessageTypes;
+includes AM;
 
 interface RoutingNetwork
 {
