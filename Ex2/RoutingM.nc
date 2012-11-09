@@ -107,6 +107,13 @@ implementation
 		
 		dbg(DBG_USR1, "RoutingM: got broadcast from bs %d with seq_nr %d, checking...\n", bs_id, seq_no);
 		
+		// first, check if this bs is me (some node sent back my broadcast)
+		if(bs_id == TOS_LOCAL_ADDRESS)
+		{
+			dbg(DBG_USR1, "RoutingM: received my own broadcast, ignoring\n");
+			return FAIL;
+		}
+		
 		if(idx < MAX_RT_ENTRIES)  // check if entry for this BS already exists
 		{
 			//entry exists, check if newer seq_nr
