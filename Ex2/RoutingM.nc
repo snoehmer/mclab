@@ -92,7 +92,7 @@ implementation
 			
 			if(idx < MAX_RT_ENTRIES)
 			{
-				if(hop_count < routingtable[idx].hop_count)
+				if(hop_count < routingtable[idx].hop_count || routingtable[idx].valid == FALSE || routingtable[idx].aging == TRUE)
 				{
 					// update entry
 					routingtable[idx].mote_id = call PacketHandler.getSrc(nmsg);
