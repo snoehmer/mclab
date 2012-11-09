@@ -18,8 +18,8 @@
 # ----------------------------------------------------------------
 
 
-#COMPONENT=Ex2
-COMPONENT=Ex2Test
+COMPONENT=Ex2
+#COMPONENT=Ex2Test
 ifdef APP_MAKERULES
 include $(APP_MAKERULES)
 else

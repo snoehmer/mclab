@@ -2,11 +2,9 @@
 	main module of Ex2, acts as base station or sensor node, depending on TOS_LOCAL_ADDRESS
 **/
 
-#define BASE_STATION_MAX_ADDR 10
-#define BASE_STATION_BROADCAST_RATE 5000  // send broadcast every 5000ms
+// create only 1 base station with address 0
+#define BASE_STATION_MAX_ADDR 0  // all addresses <= this are treated as base stations
 
-#define SENSOR_NODE_DATA_RATE 1000  // send sensor data every 1000ms
-#define SENSOR_NODE_TARGET_BASE_STATION 0  // base station to send sensor data
 
 module Ex2M
 {
@@ -16,13 +14,8 @@ module Ex2M
 	}
 	uses
 	{
-		interface StdControl as SenderControl;
-		interface StdControl as ReceiverControl;
-		interface StdControl as RoutingControl;
-		interface RoutingNetwork;
-		
-		interface Leds;
-		interface Timer as TransmitTimer;
+		interface StdControl as BaseStationControl;
+		interface StdControl as SensorNodeControl;
 	}
 }
 
@@ -31,48 +24,43 @@ implementation
 
 	command result_t StdControl.init()
 	{
-		return call Leds.init();
+		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)  // we are a base station
+		{
+			dbg(DBG_USR1, "Ex2M[%d]: initing, I am a base station!\n", TOS_LOCAL_ADDRESS);
+			return call BaseStationControl.init();
+		}
+		else  // we are a sensor node
+		{
+			dbg(DBG_USR1, "Ex2M[%d]: initing, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
+			return call SensorNodeControl.init();
+		}
 	}
 	
 	command result_t StdControl.start()
 	{		
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)  // we are a base station
 		{
-			dbg(DBG_USR1, "Ex2M: started, I am a base station!\n");
-			return call TransmitTimer.start(TIMER_REPEAT, BASE_STATION_BROADCAST_RATE);
+			dbg(DBG_USR1, "Ex2M[%d]: starting, I am a base station!\n", TOS_LOCAL_ADDRESS);
+			return call BaseStationControl.start();
 		}
 		else  // we are a sensor node
 		{
-			dbg(DBG_USR1, "Ex2M: started, I am a sensor node!\n");
-			return call TransmitTimer.start(TIMER_REPEAT, SENSOR_NODE_DATA_RATE);
+			dbg(DBG_USR1, "Ex2M[%d]: starting, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
+			return call SensorNodeControl.start();
 		}
 	}
 
 	command result_t StdControl.stop()
 	{
-		return call TransmitTimer.stop();
-	}
-
-	event result_t RoutingNetwork.receivedDataMsg(uint8_t src, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
-	{
-		dbg(DBG_USR1, "Ex2M: received data message: src=%d, data=[ %d %d %d %d ]\n", src, data1, data2, data3, data4);
-		
-		return SUCCESS;
-	}
-	
-	event result_t TransmitTimer.fired()
-	{
-		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
+		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)  // we are a base station
 		{
-			dbg(DBG_USR1, "Ex2M: transmit timer fired, sending broadcast packet");
-			
-			return call RoutingNetwork.issueBroadcast(TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR1, "Ex2M[%d]: stopping, I am a base station!\n", TOS_LOCAL_ADDRESS);
+			return call BaseStationControl.start();
 		}
-		else
+		else  // we are a sensor node
 		{
-			dbg(DBG_USR1, "Ex2M: transmit timer fired, sending fake sensor data");
-			
-			return call RoutingNetwork.sendDataMsg(SENSOR_NODE_TARGET_BASE_STATION, 42, 43, 44, 45);
+			dbg(DBG_USR1, "Ex2M[%d]: stopping, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
+			return call SensorNodeControl.start();
 		}
 	}
 }

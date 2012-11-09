@@ -5,8 +5,8 @@
 typedef struct BroadcastMsg
 {
 	uint8_t basestation_id;
-	uint8_t seq_nr;
-	uint8_t hop_count;
+	uint16_t seq_nr;
+	uint16_t hop_count;
 	uint16_t sender_addr;
 } BroadcastMsg;
 

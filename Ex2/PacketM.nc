@@ -121,28 +121,28 @@ implementation
 			message->dmsg.src_addr = new_sender_addr;
 	}
 	
-	command void PacketHandler.setData1(TOS_Msg *msg, uint16_t data)
+	command void PacketHandler.setData1(TOS_Msg *msg, uint8_t data)
 	{	
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
 		if( message->msg_type == MSG_TYPE_DATA )
 			message->dmsg.data1 = data;
 	}
 	
-	command void PacketHandler.setData2(TOS_Msg *msg, uint16_t data)
+	command void PacketHandler.setData2(TOS_Msg *msg, uint8_t data)
 	{	
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
 		if( message->msg_type == MSG_TYPE_DATA )
 			message->dmsg.data2 = data;
 	}
 	
-	command void PacketHandler.setData3(TOS_Msg *msg, uint16_t data)
+	command void PacketHandler.setData3(TOS_Msg *msg, uint8_t data)
 	{	
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
 		if( message->msg_type == MSG_TYPE_DATA )
 			message->dmsg.data3 = data;
 	}
 	
-	command void PacketHandler.setData4(TOS_Msg *msg, uint16_t data)
+	command void PacketHandler.setData4(TOS_Msg *msg, uint8_t data)
 	{	
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
 		if( message->msg_type == MSG_TYPE_DATA )
@@ -167,7 +167,7 @@ implementation
 	}
 	
 	command TOS_Msg PacketHandler.assembleDataMessage
-		(uint8_t basestation_id, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
+		(uint16_t basestation_id, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
 	{
 		TOS_Msg new_TOS_message;
 		NetworkMsg *new_network_message = (NetworkMsg*) new_TOS_message.data;

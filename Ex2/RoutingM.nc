@@ -2,7 +2,7 @@
 	provides interfaces to receive messages
 */
 
-#define MAX_RT_ENTRIES      3
+#define MAX_RT_ENTRIES      10
 
 
 includes MessageTypes;
@@ -18,7 +18,11 @@ module RoutingM
 	uses
 	{
 		interface MessageSender;
+		interface StdControl as SenderControl;
+		
 		interface MessageReceiver;
+		interface StdControl as ReceiverControl;
+		
 		interface PacketHandler;
 	}
 }
@@ -26,13 +30,12 @@ module RoutingM
 implementation
 {
 	uint8_t rt_idx;
-	uint16_t sequence_number;	// sequence number counter for broadcast issueing
 	RoutingTableEntry routingtable[MAX_RT_ENTRIES];
 	
 	command result_t StdControl.init()
 	{
 		uint8_t count1 = 0;
-		uint8_t count2 = 0;
+		
 		for(count1 = 0; count1 < MAX_RT_ENTRIES; count1++)
 		{
 			routingtable[count1].basestation_id = 0;
@@ -43,37 +46,45 @@ implementation
 			routingtable[count1].valid = FALSE;
 		}
 		rt_idx = 0;
-		sequence_number = 0;
 		
-		return SUCCESS;
+		return rcombine(call SenderControl.init(), call ReceiverControl.init());
 	}
 	
 	command result_t StdControl.start()
 	{
-		return SUCCESS;
+		return rcombine(call SenderControl.start(), call ReceiverControl.start());
 	}
 	
 	command result_t StdControl.stop()
 	{		
-		return SUCCESS;
+		return rcombine(call SenderControl.stop(), call ReceiverControl.stop());
 	}
 	
 	
-	command result_t RoutingNetwork.issueBroadcast(uint8_t basestation_id)
+	uint8_t getKnownBasestation(uint16_t basestation_id)
+	{	
+		uint8_t count1 = 0;
+		for(count1 = 0; count1 < MAX_RT_ENTRIES; count1++)
+			if(routingtable[count1].basestation_id == basestation_id)
+				return count1;
+		return MAX_RT_ENTRIES+1;
+	}
+	
+	command result_t RoutingNetwork.issueBroadcast(uint16_t basestation_id, uint16_t sequence_number)
 	{
 		TOS_Msg new_broadcast;
 		
 		dbg(DBG_USR1, "RoutingM: Broadcast issued with basestation_id = \n", basestation_id);
 		
-		new_broadcast = call PacketHandler.assembleBroadcastMessage(basestation_id, sequence_number++, 0);
+		new_broadcast = call PacketHandler.assembleBroadcastMessage(basestation_id, sequence_number, 0);
 		
 		return call MessageSender.sendMessage(new_broadcast, TOS_BCAST_ADDR);
 	}
 	
 	command result_t RoutingNetwork.updateRoutingtable(TOS_Msg *nmsg)
 	{
-		uint8_t idx = call RoutingNetwork.isKnownBasestation(call PacketHandler.getBasestationID(nmsg));
-		uint8_t seq_no = call PacketHandler.getSequenceNumber(nmsg);
+		uint8_t idx = getKnownBasestation(call PacketHandler.getBasestationID(nmsg));
+		uint16_t seq_no = call PacketHandler.getSequenceNumber(nmsg);
 		
 		if( seq_no > routingtable[idx].sequence_number )
 		{
@@ -123,10 +134,10 @@ implementation
 		return call MessageSender.sendMessage(*nmsg, TOS_BCAST_ADDR);
 	}
 	
-	command result_t RoutingNetwork.sendDataMsg(uint8_t dest, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
+	command result_t RoutingNetwork.sendDataMsg(uint16_t dest, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
 	{
 		TOS_Msg new_data_msg = call PacketHandler.assembleDataMessage(dest, data1, data2, data3, data4);
-		uint8_t idx = call RoutingNetwork.isKnownBasestation(dest);
+		uint8_t idx = getKnownBasestation(dest);
 		
 		
 		if(idx < MAX_RT_ENTRIES)
@@ -144,7 +155,7 @@ implementation
 	command result_t RoutingNetwork.forwardDataMsg(TOS_Msg *nmsg)
 	{
 		uint16_t dest = call PacketHandler.getBasestationID(nmsg); 
-		uint8_t idx = call RoutingNetwork.isKnownBasestation(dest);
+		uint8_t idx = getKnownBasestation(dest);
 		if(idx < MAX_RT_ENTRIES)
 		{
 			dbg(DBG_USR1, "RoutingM: Forward data message to MoteID = \n", routingtable[idx].mote_id);
@@ -157,13 +168,12 @@ implementation
 		}
 	}
 	
-	command uint8_t RoutingNetwork.isKnownBasestation(uint8_t basestation_id)
+	command bool RoutingNetwork.isKnownBasestation(uint16_t basestation_id)
 	{	
-		uint8_t count1 = 0;
-		for(count1 = 0; count1 < MAX_RT_ENTRIES; count1++)
-			if(routingtable[count1].basestation_id == basestation_id)
-				return count1;
-		return MAX_RT_ENTRIES+1;
+		if(getKnownBasestation(basestation_id) < MAX_RT_ENTRIES)
+			return TRUE;
+		else
+			return FALSE;
 	}
 	
 	
@@ -207,4 +217,3 @@ implementation
 		}
 	}
 }
-

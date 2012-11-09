@@ -17,12 +17,12 @@ interface PacketHandler
 	command void setSequenceNumber(TOS_Msg *msg, uint16_t new_sequence_number);
 	command void setHopcount(TOS_Msg *msg, uint16_t new_hop_count);
 	command void setSrc(TOS_Msg *msg, uint16_t new_sender_addr);
-	command void setData1(TOS_Msg *msg, uint16_t data);
-	command void setData2(TOS_Msg *msg, uint16_t data);
-	command void setData3(TOS_Msg *msg, uint16_t data);
-	command void setData4(TOS_Msg *msg, uint16_t data);
+	command void setData1(TOS_Msg *msg, uint8_t data);
+	command void setData2(TOS_Msg *msg, uint8_t data);
+	command void setData3(TOS_Msg *msg, uint8_t data);
+	command void setData4(TOS_Msg *msg, uint8_t data);
 	command TOS_Msg assembleBroadcastMessage
 		(uint16_t basestation_id, uint16_t sequence_number, uint16_t hop_count);	
 	command TOS_Msg assembleDataMessage
-		(uint8_t basestation_id, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4);
+		(uint16_t basestation_id, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4);
 }
