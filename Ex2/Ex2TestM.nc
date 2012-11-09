@@ -46,10 +46,12 @@ implementation
 		else if(TOS_LOCAL_ADDRESS == RECEIVER_ADDR)
 		{
 			dbg(DBG_USR1, "Ex2TestM: I am receiver, waiting for messages\n");
+			call Timer.stop();
 		}
 		else
 		{
 			dbg(DBG_USR1, "Ex2TestM: I am unknown, bye bye\n");
+			call Timer.stop();
 		}
 		
 		return rcombine(call SenderControl.start(), call ReceiverControl.start());
@@ -86,22 +88,39 @@ implementation
 	
 	event result_t Timer.fired()
 	{
-		TOS_Msg new_msg;
+		TOS_Msg new_msg1;
+		TOS_Msg new_msg2;
+		result_t res1;
+		result_t res2;
 		
 		if(TOS_LOCAL_ADDRESS == SENDER_ADDR)
 		{
-			dbg(DBG_USR1, "Ex2TestM: trying to send a packet to addr %d\n", RECEIVER_ADDR);
+			dbg(DBG_USR1, "Ex2TestM: trying to send two packets to addr %d\n", RECEIVER_ADDR);
 				
-			new_msg = call PacketHandler.assembleDataMessage(123, 3, 4, 5, 6);
-			//new_msg.addr = RECEIVER_ADDR;
+			new_msg1 = call PacketHandler.assembleDataMessage(123, 3, 4, 5, 6);
+			new_msg2 = call PacketHandler.assembleDataMessage(15, 7, 6, 5, 4);
+			new_msg1.addr = RECEIVER_ADDR;
+			new_msg2.addr = RECEIVER_ADDR;
 			
 			// show packet info
-			dbg(DBG_USR1, "Ex2TestM: assembled new data package: addr = %d, type = %d, src = %d, data = [%d %d %d %d]\n", 
-				new_msg.addr, call PacketHandler.getMsgType(&new_msg), call PacketHandler.getSrc(&new_msg),
-				call PacketHandler.getData1(&new_msg), call PacketHandler.getData2(&new_msg), call PacketHandler.getData3(&new_msg),
-				call PacketHandler.getData4(&new_msg));
+			dbg(DBG_USR1, "Ex2TestM: assembled new data package 1: addr = %d, type = %d, src = %d, data = [%d %d %d %d]\n", 
+				new_msg1.addr, call PacketHandler.getMsgType(&new_msg1), call PacketHandler.getSrc(&new_msg1),
+				call PacketHandler.getData1(&new_msg1), call PacketHandler.getData2(&new_msg1), call PacketHandler.getData3(&new_msg1),
+				call PacketHandler.getData4(&new_msg1));
 			
-			return call MessageSender.sendMessage(new_msg, RECEIVER_ADDR);
+			// show packet info
+			dbg(DBG_USR1, "Ex2TestM: assembled new data package 2: addr = %d, type = %d, src = %d, data = [%d %d %d %d]\n", 
+				new_msg2.addr, call PacketHandler.getMsgType(&new_msg2), call PacketHandler.getSrc(&new_msg2),
+				call PacketHandler.getData1(&new_msg2), call PacketHandler.getData2(&new_msg2), call PacketHandler.getData3(&new_msg2),
+				call PacketHandler.getData4(&new_msg2));
+			
+			res1 = call MessageSender.sendMessage(new_msg1, RECEIVER_ADDR);
+			res2 = call MessageSender.sendMessage(new_msg2, RECEIVER_ADDR);
+			
+			if(res1 != SUCCESS || res2 != SUCCESS)
+				dbg(DBG_USR1, "Ex2TestM: sending 2 packets failed!\n");
+			
+			return rcombine(res1, res2);
 		}
 		else
 		{

@@ -170,7 +170,7 @@ implementation
 			
 			if(res == SUCCESS)  // packet sent successfully
 			{
-				pending = FALSE;
+				//pending = FALSE;
 				dbg(DBG_USR1, "SenderM: sendMessage sent message immediately\n");
 			}
 			else
@@ -219,7 +219,7 @@ implementation
 				
 				if(res == SUCCESS)  // packet sent successfully
 				{
-					pending = FALSE;
+					//pending = FALSE;
 					dbg(DBG_USR1, "SenderM: sendDone sent message immediately\n");
 				}
 				else
