@@ -23,7 +23,7 @@ module SenderM
 implementation
 {
 	// send buffer stuff
-	TOS_Msg buffer[SEND_BUFFER_SIZE];
+	struct TOS_Msg buffer[SEND_BUFFER_SIZE];
 	uint16_t dest_addr[SEND_BUFFER_SIZE];
 	uint8_t write_pos;
 	uint8_t read_pos;
@@ -31,10 +31,10 @@ implementation
 	
 	// helpers for current message
 	bool pending;
-	TOS_MsgPtr current_msg;
+	TOS_Msg current_msg;
 	
 	
-	result_t buffer_add(TOS_Msg new_msg, uint16_t dest)
+	result_t buffer_add(struct TOS_Msg new_msg, uint16_t dest)
 	{
 		if(size >= SEND_BUFFER_SIZE)
 		{
@@ -53,7 +53,7 @@ implementation
 			size++;
 		}
 			
-		dbg(DBG_USR1, "SenderM: message added to send buffer, dest = \n", dest);
+		dbg(DBG_USR1, "SenderM: message added to send buffer, dest = %d\n", dest);
 		return SUCCESS;
 	}
 	
@@ -113,9 +113,12 @@ implementation
 	}
 	
 	// if the sender is idle, send packet; else queue it in buffer
-	command result_t MessageSender.sendMessage(TOS_Msg new_msg, uint16_t dest)
+	command result_t MessageSender.sendMessage(struct TOS_Msg new_msg, uint16_t dest)
 	{
-		result_t res;	
+		result_t res;
+		NetworkMsg *nmsg;
+		BroadcastMsg *bmsg;
+		SimpleDataMsg *dmsg;	
 		
 		if(pending)  // a message is currently being sent, add to buffer
 		{
@@ -135,12 +138,45 @@ implementation
 			
 			atomic
 			{
-				current_msg = &new_msg;
+				current_msg = new_msg;
 				pending = TRUE;
 			}
 			
-			current_msg = &new_msg;
-			res = call SendMsg.send(dest, sizeof(NetworkMsg), &new_msg);
+			//new_msg.addr = dest;
+			
+			nmsg = (NetworkMsg*) &(current_msg.data);
+			dbg(DBG_USR1, "SenderM: sending new packet: addr = %d, type = %d ", current_msg.addr, nmsg->msg_type);
+			
+			if(nmsg->msg_type == MSG_TYPE_BCAST)
+			{
+				bmsg = &(nmsg->bmsg);
+				
+				dbg(DBG_USR1, "(bcast): bs_id = %d, hopcount = %d, seqnr = %d, sender_addr = %d\n", bmsg->basestation_id,
+					bmsg->hop_count, bmsg->seq_nr, bmsg->sender_addr);
+			}
+			else if(nmsg->msg_type == MSG_TYPE_DATA)
+			{
+				dmsg = &(nmsg->dmsg);
+				
+				dbg(DBG_USR1, "(data): bs_id = %d, src = %d, data = [%d %d %d %d]\n", dmsg->basestation_id, dmsg->src_addr,
+					dmsg->data1, dmsg->data2, dmsg->data3, dmsg->data4);
+			}
+			else
+			{
+				dbg(DBG_USR1, "(unknown!) FAIL\n");
+			}
+			
+			res = call SendMsg.send(dest, sizeof(NetworkMsg), &current_msg);
+			
+			if(res == SUCCESS)  // packet sent successfully
+			{
+				pending = FALSE;
+				dbg(DBG_USR1, "SenderM: sendMessage sent message immediately\n");
+			}
+			else
+			{
+				dbg(DBG_USR1, "SenderM: sendMessage sent message delayed, pending\n");
+			}
 		}
 		
 		return SUCCESS;
@@ -153,7 +189,7 @@ implementation
   		TOS_Msg next_msg;
   		uint16_t dest;
   		
-    	if(pending && msg == current_msg)  // current message sent successfully
+    	if(pending && msg == &current_msg)  // current message sent successfully
       	{
       		if(buffer_isEmpty())  // no more messages, feierabend for now
       		{
@@ -173,8 +209,23 @@ implementation
 					return res;
 				}
 			
-				current_msg = &next_msg;
-				res = call SendMsg.send(dest, sizeof(NetworkMsg), &next_msg);
+				atomic
+				{
+					pending = TRUE;
+					current_msg = next_msg;
+				}
+				
+				res = call SendMsg.send(dest, sizeof(NetworkMsg), &current_msg);
+				
+				if(res == SUCCESS)  // packet sent successfully
+				{
+					pending = FALSE;
+					dbg(DBG_USR1, "SenderM: sendDone sent message immediately\n");
+				}
+				else
+				{
+					dbg(DBG_USR1, "SenderM: sendDone sent message delayed, pending\n");
+				}
 			}
       	}
     

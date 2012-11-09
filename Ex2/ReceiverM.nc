@@ -17,7 +17,6 @@ module ReceiverM
 	{
 		interface StdControl as ReceiverControl;
 		interface ReceiveMsg;
-		interface PacketHandler;
 	}
 }
 
@@ -108,7 +107,7 @@ implementation
 		// get new message from buffer
 		res = buffer_get(&new_msg);
 		
-		// TODO: discard message on special reasons?
+		dbg(DBG_USR1, "ReceiverM: processing received message, addr = %d\n", new_msg.addr);
 		
 		// signal event to process message
 		signal MessageReceiver.receivedMessage(new_msg);
@@ -117,6 +116,8 @@ implementation
 	event TOS_MsgPtr ReceiveMsg.receive(TOS_MsgPtr m)
 	{
 		result_t res;
+		
+		dbg(DBG_USR1, "ReceiverM: received message, adding to buffer\n");
 		
 		// add new message to buffer to process it later
 		res = buffer_add(*m);
