@@ -6,6 +6,7 @@
 
 
 includes MessageTypes;
+includes Routingtable;
 
 module RoutingM
 {
@@ -24,18 +25,6 @@ module RoutingM
 
 implementation
 {
-
-	typedef struct RoutingTableEntry
-	{
-		uint8_t basestation_id;
-		uint8_t mote_id;
-		uint8_t sequence_number;
-		uint8_t hop_count;
-		bool aging;
-		bool valid;
-		
-	} RoutingTableEntry;
-
 	uint8_t rt_idx;
 	uint16_t sequence_number;	// sequence number counter for broadcast issueing
 	RoutingTableEntry routingtable[MAX_RT_ENTRIES];
