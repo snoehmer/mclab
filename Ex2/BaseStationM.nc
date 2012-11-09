@@ -40,12 +40,19 @@ implementation
 	}
 	
 	command result_t StdControl.start()
-	{
+	{		
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
 			dbg(DBG_USR1, "BaseStationM[%d]: starting", TOS_LOCAL_ADDRESS);
 			call Leds.yellowOn();  // yellow LED signals base station
-			return rcombine(call RoutingControl.start(), call BroadcastTimer.start(TIMER_REPEAT, BASE_STATION_BROADCAST_RATE));
+			
+			// send hello broadcast on startup
+			if(call RoutingControl.start() == SUCCESS)
+				if(call RoutingNetwork.issueBroadcast(TOS_LOCAL_ADDRESS, seq_nr++))
+					if(call BroadcastTimer.start(TIMER_REPEAT, BASE_STATION_BROADCAST_RATE))
+						return SUCCESS;
+			
+			return FAIL;
 		}
 		
 		return SUCCESS;

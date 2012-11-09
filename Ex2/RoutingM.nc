@@ -89,7 +89,7 @@ implementation
 	{
 		TOS_Msg new_broadcast;
 		
-		dbg(DBG_USR1, "RoutingM: Broadcast issued with basestation_id = \n", basestation_id);
+		dbg(DBG_USR1, "RoutingM: Broadcast issued with basestation_id = %d\n", basestation_id);
 		
 		new_broadcast = call PacketHandler.assembleBroadcastMessage(basestation_id, sequence_number, 0);
 		
@@ -105,7 +105,7 @@ implementation
 		uint16_t hop_count = call PacketHandler.getHopcount(nmsg);
 		uint16_t parent_addr = call PacketHandler.getSrc(nmsg);
 		
-		dbg(DBG_USR1, "RoutingM: got broadcast from bs %d with seq_nr %d, checking...\n", bs_id, seq_no);
+		dbg(DBG_USR1, "RoutingM: got broadcast from bs %d with seq_nr %d, parent %d, hop_count %d, checking...\n", bs_id, seq_no, parent_addr, hop_count);
 		
 		// first, check if this bs is me (some node sent back my broadcast)
 		if(bs_id == TOS_LOCAL_ADDRESS)
@@ -216,7 +216,7 @@ implementation
 		
 		if(idx < MAX_RT_ENTRIES)
 		{
-			dbg(DBG_USR1, "RoutingM: Sending data message to dest %d\n", dest);
+			dbg(DBG_USR1, "RoutingM: Sending data message to bs %d over node %d\n", dest, routingtable[idx].mote_id);
 			return call MessageSender.sendMessage(new_data_msg, routingtable[idx].mote_id);
 		}
 		else 
@@ -275,7 +275,7 @@ implementation
 		else if(call PacketHandler.getMsgType(&new_msg) == MSG_TYPE_DATA)
 		{
 			// received a data message, check if I am the destination
-			if(new_msg.addr == TOS_LOCAL_ADDRESS)
+			if(call PacketHandler.getBasestationID(&new_msg) == TOS_LOCAL_ADDRESS)
 			{
 				dbg(DBG_USR1, "RoutingM: received data package for me, signaling event\n");
 				
