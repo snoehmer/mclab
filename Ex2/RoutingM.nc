@@ -89,7 +89,7 @@ implementation
 	{
 		TOS_Msg new_broadcast;
 		
-		dbg(DBG_USR1, "RoutingM: Broadcast issued with basestation_id = \n", basestation_id);
+		dbg(DBG_USR2, "RoutingM: Broadcast issued with basestation_id = %d\n", basestation_id);
 		
 		new_broadcast = call PacketHandler.assembleBroadcastMessage(basestation_id, sequence_number, 0);
 		
@@ -105,7 +105,7 @@ implementation
 		uint16_t hop_count = call PacketHandler.getHopcount(nmsg);
 		uint16_t parent_addr = call PacketHandler.getSrc(nmsg);
 		
-		dbg(DBG_USR1, "RoutingM: got broadcast from bs %d with seq_nr %d, checking...\n", bs_id, seq_no);
+		dbg(DBG_USR2, "RoutingM: got broadcast from bs %d with seq_nr %d, checking...\n", bs_id, seq_no);
 		
 		// first, check if this bs is me (some node sent back my broadcast)
 		if(bs_id == TOS_LOCAL_ADDRESS)
@@ -120,7 +120,7 @@ implementation
 			if(seq_no > routingtable[idx].sequence_number)
 			{
 				// newer package, update routing table
-				dbg(DBG_USR1, "RoutingM: broadcast from known bs with newer seq_nr, update!\n");
+				dbg(DBG_USR2, "RoutingM: broadcast from known bs with newer seq_nr, update!\n");
 				
 				routingtable[idx].mote_id = parent_addr;
 				routingtable[idx].sequence_number = seq_no;
@@ -134,7 +134,7 @@ implementation
 				if(hop_count < routingtable[idx].hop_count)  // better route found
 				{
 					// better route, update routing table
-					dbg(DBG_USR1, "RoutingM: broadcast from known bs with smaller hop_count, update!\n");
+					dbg(DBG_USR2, "RoutingM: broadcast from known bs with smaller hop_count, update!\n");
 					
 					routingtable[idx].mote_id = parent_addr;
 					routingtable[idx].hop_count = hop_count;
@@ -146,7 +146,7 @@ implementation
 				{
 					if(parent_addr == routingtable[idx].mote_id)  // exact same route, still alive -> clear aging flag
 					{
-						dbg(DBG_USR1, "RoutingM: broadcast from known bs over same route, clearing aging flag\n");
+						dbg(DBG_USR2, "RoutingM: broadcast from known bs over same route, clearing aging flag\n");
 						
 						routingtable[idx].aging = FALSE;
 						
@@ -154,21 +154,21 @@ implementation
 					}
 					else  // other route found, not needed, ignore and drop broadcast package
 					{
-						dbg(DBG_USR1, "RoutingM: broadcast from known bs over other route with equal hop_count, ignoring\n");
+						dbg(DBG_USR2, "RoutingM: broadcast from known bs over other route with equal hop_count, ignoring\n");
 						
 						return FAIL;
 					}
 				}
 				else  // worse quality route found, ignore and drop broadcast package
 				{
-					dbg(DBG_USR1, "RoutingM: broadcast from known bs with higher hop_count, ignoring\n");
+					dbg(DBG_USR2, "RoutingM: broadcast from known bs with higher hop_count, ignoring\n");
 					
 					return FAIL;
 				}
 			}
 			else  // old broadcast message with smaller seq_nr, ignore and drop
 			{
-				dbg(DBG_USR1, "RoutingM: old broadcast from known bs with older seq_nr, ignoring\n");
+				dbg(DBG_USR2, "RoutingM: old broadcast from known bs with older seq_nr, ignoring\n");
 				
 				return FAIL;
 			}
@@ -176,7 +176,7 @@ implementation
 		else  // no entry exists for this BS
 		{
 			// add the BS to the routing table
-			dbg(DBG_USR1, "RoutingM: broadcast from new bs, adding! (bs %d, route %d, seq_nr %d, hop_count %d\n", bs_id, parent_addr, seq_no, hop_count);
+			dbg(DBG_USR2, "RoutingM: broadcast from new bs, adding! (bs %d, route %d, seq_nr %d, hop_count %d\n", bs_id, parent_addr, seq_no, hop_count);
 			
 			idx = getFreeRTSlot();
 			
@@ -193,7 +193,7 @@ implementation
 			}
 			else  // no free slot found! ignore
 			{
-				dbg(DBG_USR1, "RoutingM: no free slot in routing table found! ignoring!\n");
+				dbg(DBG_USR2, "RoutingM: no free slot in routing table found! ignoring!\n");
 				return SUCCESS;
 			}
 		}
