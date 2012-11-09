@@ -31,8 +31,10 @@ und ein valid Flag.
 Wird ein gültiger Eintrag in die Routingtable geschrieben so muss das valid 
 Flag auf TRUE und das aging Flag auf FALSE gesetzt werden. Auf den Motes läuft 
 ein Aging-Timer der Periodisch das aging Flag der RoutingtableEntries auf TRUE 
-setzt. Ist das aging Flag TRUE wird der Eintrag bei der nächsten gültigen 
-Broadcastmessage upgedated und wieder auf FALSE gesetzt.
+setzt. Beim Empfang einer gültigen Broadcastmessage wird das Aging-Flag wieder
+auf FALSE gesetzt. Findet nun der Aging-Timer einen Eintrag, dessen Aging-Flag
+bereits TRUE ist, wird die Route als nicht mehr existierend angesehen und aus
+der Routing Table entfernt.
 Beim Auslesen aus der Routingtable muss natürlich die valid Flag überprüft werden
 ob der Eintrag gülig ist, damit das Paket auf der richtigen Route versandt wird.
 
@@ -51,12 +53,14 @@ Interface zur Verfügung welches vom SenderM und RoutingM genutzt werden.
 RoutingM:
 Die Verwaltung der Routingtable sowie das weiterleiten der Pakete an SenderM 
 oder die interne Verarbeitung (bei Datenpaketen), passiert in diesem Modul.
+Der Algorithmus zum korrekten Anlegen ist in der Angabe erklärt und wurde auch
+so implementiert.
 
 SenderM:
 Zuständig für das Senden der Pakete sowie die Verwaltung des send-FIFO. Aufruf 
 bei Transmittimer-fired-event oder durch das RoutingM welches Pakete zum 
 Weiterleiten übergibt. Verwendet das PacketM um Pakete zu erstellen welche 
-daraufhin in den send-FIFO geschrieben werden.
+daraufhin in den send-FIFO geschrieben werden. Dadurch asynchrone Behandlung.
 
 ReceiverM:
 Zuständig für das Empfangen der Pakete sowie die Verwaltung des receive-FIFO. 
