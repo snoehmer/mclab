@@ -89,7 +89,8 @@ implementation
 					routingtable[idx].hop_count = hop_count;
 					routingtable[idx].aging = FALSE;
 					routingtable[idx].valid = TRUE;
-					dbg(DBG_USR1, "RoutingM: Updating Routingtable entry for basestation_id = \n", routingtable[idx].basestation_id);
+					dbg(DBG_USR1, "RoutingM: Updating Routingtable entry for basestation_id = %d, mote_id = %d, sequence_number = %d, hop_count = %d\n", 
+						routingtable[idx].basestation_id, routingtable[idx].sequence_number, routingtable[idx].hop_count);
 				}
 				else dbg(DBG_USR1, "RoutingM: No update to routingtable due to higher hop_count to basestation_id = \n", routingtable[idx].basestation_id);
 			}
@@ -103,7 +104,10 @@ implementation
 				routingtable[rt_idx].aging = FALSE;
 				routingtable[rt_idx].valid = TRUE;
 			
-				dbg(DBG_USR1, "RoutingM: New Routingtable entry for basestation_id = \n", routingtable[rt_idx-1].basestation_id);
+				dbg(DBG_USR1, "RoutingM: Updating Routingtable entry for basestation_id = %d, mote_id = %d, sequence_number = %d, hop_count = %d\n", 
+					routingtable[rt_idx].basestation_id, routingtable[rt_idx].sequence_number, routingtable[rt_idx].hop_count);
+				
+				rt_idx++;
 				
 				if(rt_idx >= MAX_RT_ENTRIES)
 					rt_idx = 0;
