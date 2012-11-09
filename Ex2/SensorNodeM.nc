@@ -30,7 +30,7 @@ implementation
 	{	
 		if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR)
 		{
-			dbg(DBG_USR1, "SensorNodeM[%d]: initing", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR2, "SensorNodeM[%d]: initing", TOS_LOCAL_ADDRESS);
 			return rcombine(call Leds.init(), call RoutingControl.init());
 		}
 		
@@ -41,7 +41,7 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR)
 		{
-			dbg(DBG_USR1, "SensorNodeM[%d]: starting", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR2, "SensorNodeM[%d]: starting", TOS_LOCAL_ADDRESS);
 			call Leds.yellowOff();  // yellow LED off signals sensor node
 			return rcombine(call RoutingControl.start(), call AcquireTimer.start(TIMER_REPEAT, SENSOR_NODE_DATA_RATE));
 		}
@@ -52,7 +52,7 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR)
 		{
-			dbg(DBG_USR1, "SensorNodeM[%d]: stopping", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR2, "SensorNodeM[%d]: stopping", TOS_LOCAL_ADDRESS);
 			return rcombine(call RoutingControl.stop(), call AcquireTimer.stop());
 		}
 		
@@ -76,13 +76,13 @@ implementation
 				
 				if(call RoutingNetwork.isKnownBasestation(SENSOR_NODE_TARGET_BASE_STATION))
 				{
-					dbg(DBG_USR1, "SensorNodeM[%d]: acquire timer fired, sending data packet to known bs %d\n", TOS_LOCAL_ADDRESS, SENSOR_NODE_TARGET_BASE_STATION);
+					dbg(DBG_USR3, "SensorNodeM[%d]: acquire timer fired, sending data packet to known bs %d\n", TOS_LOCAL_ADDRESS, SENSOR_NODE_TARGET_BASE_STATION);
 					
 					return call RoutingNetwork.sendDataMsg(SENSOR_NODE_TARGET_BASE_STATION, data1, data2, data3, data4);
 				}
 				else  // base station is not in routing table, ignore
 				{
-					dbg(DBG_USR1, "SensorNodeM[%d]: aquire timer fired, but bs %d is unknown! ignoring packet.\n", TOS_LOCAL_ADDRESS, SENSOR_NODE_TARGET_BASE_STATION);
+					dbg(DBG_USR3, "SensorNodeM[%d]: aquire timer fired, but bs %d is unknown! ignoring packet.\n", TOS_LOCAL_ADDRESS, SENSOR_NODE_TARGET_BASE_STATION);
 					
 					return SUCCESS;
 				}
@@ -99,8 +99,8 @@ implementation
 		{
 			call Leds.redToggle();  // red LED blinking signals message receiving
 		
-			dbg(DBG_USR1, "SensorNodeM[%d]: aha, I received a data message addressed to me. ignoring.", TOS_LOCAL_ADDRESS);
-			dbg(DBG_USR1, " details: src=%d, data=[%d %d %d %d]\n", src, data1, data2, data3, data4);
+			dbg(DBG_USR3, "SensorNodeM[%d]: aha, I received a data message addressed to me. ignoring.", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, " details: src=%d, data=[%d %d %d %d]\n", src, data1, data2, data3, data4);
 		}
 		
 		return SUCCESS;

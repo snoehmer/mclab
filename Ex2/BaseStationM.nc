@@ -32,7 +32,7 @@ implementation
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
 			seq_nr = 0;
-			dbg(DBG_USR1, "BaseStationM[%d]: initing", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR2, "BaseStationM[%d]: initing", TOS_LOCAL_ADDRESS);
 			return rcombine(call Leds.init(), call RoutingControl.init());
 		}
 		
@@ -43,7 +43,7 @@ implementation
 	{		
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
-			dbg(DBG_USR1, "BaseStationM[%d]: starting", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR2, "BaseStationM[%d]: starting", TOS_LOCAL_ADDRESS);
 			call Leds.yellowOn();  // yellow LED signals base station
 			
 			// send hello broadcast on startup
@@ -62,7 +62,7 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
-			dbg(DBG_USR1, "BaseStationM[%d]: stopping", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR2, "BaseStationM[%d]: stopping", TOS_LOCAL_ADDRESS);
 			return rcombine(call RoutingControl.stop(), call BroadcastTimer.stop());
 		}
 		
@@ -78,7 +78,7 @@ implementation
 			call Leds.greenToggle();  // green LED blinking signals broadcast sending
 		
 			// send a new broadcast packet
-			dbg(DBG_USR1, "BaseStationM[%d]: broadcast timer fired, sending broadcast with seq_nr=%d\n", TOS_LOCAL_ADDRESS, seq_nr);
+			dbg(DBG_USR3, "BaseStationM[%d]: broadcast timer fired, sending broadcast with seq_nr=%d\n", TOS_LOCAL_ADDRESS, seq_nr);
 			return call RoutingNetwork.issueBroadcast(TOS_LOCAL_ADDRESS, seq_nr++);
 		}
 		
@@ -93,8 +93,8 @@ implementation
 		{
 			call Leds.redToggle();  // red LED blinking signals data reception
 		
-			dbg(DBG_USR1, "BaseStationM[%d]: received a data package for me!", TOS_LOCAL_ADDRESS);
-			dbg(DBG_USR1, " details: src=%d, data=[ %d %d %d %d ]\n", src, data1, data2, data3, data4);
+			dbg(DBG_USR3, "BaseStationM[%d]: received a data package for me!", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, " details: src=%d, data=[ %d %d %d %d ]\n", src, data1, data2, data3, data4);
 		}
 		
 		return SUCCESS;

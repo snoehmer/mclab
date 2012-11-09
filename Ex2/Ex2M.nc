@@ -24,12 +24,12 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)  // we are a base station
 		{
-			dbg(DBG_USR1, "Ex2M[%d]: initing, I am a base station!\n", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, "Ex2M[%d]: initing, I am a base station!\n", TOS_LOCAL_ADDRESS);
 			return call BaseStationControl.init();
 		}
 		else  // we are a sensor node
 		{
-			dbg(DBG_USR1, "Ex2M[%d]: initing, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, "Ex2M[%d]: initing, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
 			return call SensorNodeControl.init();
 		}
 	}
@@ -38,12 +38,12 @@ implementation
 	{		
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)  // we are a base station
 		{
-			dbg(DBG_USR1, "Ex2M[%d]: starting, I am a base station!\n", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, "Ex2M[%d]: starting, I am a base station!\n", TOS_LOCAL_ADDRESS);
 			return call BaseStationControl.start();
 		}
 		else  // we are a sensor node
 		{
-			dbg(DBG_USR1, "Ex2M[%d]: starting, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, "Ex2M[%d]: starting, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
 			return call SensorNodeControl.start();
 		}
 	}
@@ -52,12 +52,12 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)  // we are a base station
 		{
-			dbg(DBG_USR1, "Ex2M[%d]: stopping, I am a base station!\n", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, "Ex2M[%d]: stopping, I am a base station!\n", TOS_LOCAL_ADDRESS);
 			return call BaseStationControl.start();
 		}
 		else  // we are a sensor node
 		{
-			dbg(DBG_USR1, "Ex2M[%d]: stopping, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, "Ex2M[%d]: stopping, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
 			return call SensorNodeControl.start();
 		}
 	}
