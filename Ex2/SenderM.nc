@@ -3,6 +3,7 @@
 */
 
 #define SEND_BUFFER_SIZE 10
+#define DEBUG 0
 
 includes MessageTypes;
 
@@ -138,32 +139,34 @@ implementation
 			
 			atomic
 			{
+				new_msg.addr = dest;
 				current_msg = new_msg;
 				pending = TRUE;
 			}
 			
-			//new_msg.addr = dest;
-			
-			nmsg = (NetworkMsg*) &(current_msg.data);
-			dbg(DBG_USR1, "SenderM: sending new packet: addr = %d, type = %d ", current_msg.addr, nmsg->msg_type);
-			
-			if(nmsg->msg_type == MSG_TYPE_BCAST)
+			if(DEBUG)
 			{
-				bmsg = &(nmsg->bmsg);
+				nmsg = (NetworkMsg*) &(current_msg.data);
+				dbg(DBG_USR1, "SenderM: sending new packet: addr = %d, type = %d ", current_msg.addr, nmsg->msg_type);
 				
-				dbg(DBG_USR1, "(bcast): bs_id = %d, hopcount = %d, seqnr = %d, sender_addr = %d\n", bmsg->basestation_id,
-					bmsg->hop_count, bmsg->seq_nr, bmsg->sender_addr);
-			}
-			else if(nmsg->msg_type == MSG_TYPE_DATA)
-			{
-				dmsg = &(nmsg->dmsg);
-				
-				dbg(DBG_USR1, "(data): bs_id = %d, src = %d, data = [%d %d %d %d]\n", dmsg->basestation_id, dmsg->src_addr,
-					dmsg->data1, dmsg->data2, dmsg->data3, dmsg->data4);
-			}
-			else
-			{
-				dbg(DBG_USR1, "(unknown!) FAIL\n");
+				if(nmsg->msg_type == MSG_TYPE_BCAST)
+				{
+					bmsg = &(nmsg->bmsg);
+					
+					dbg(DBG_USR1, "(bcast): bs_id = %d, hopcount = %d, seqnr = %d, sender_addr = %d\n", bmsg->basestation_id,
+						bmsg->hop_count, bmsg->seq_nr, bmsg->sender_addr);
+				}
+				else if(nmsg->msg_type == MSG_TYPE_DATA)
+				{
+					dmsg = &(nmsg->dmsg);
+					
+					dbg(DBG_USR1, "(data): bs_id = %d, src = %d, data = [%d %d %d %d]\n", dmsg->basestation_id, dmsg->src_addr,
+						dmsg->data1, dmsg->data2, dmsg->data3, dmsg->data4);
+				}
+				else
+				{
+					dbg(DBG_USR1, "(unknown!) FAIL\n");
+				}
 			}
 			
 			res = call SendMsg.send(dest, sizeof(NetworkMsg), &current_msg);
@@ -212,6 +215,7 @@ implementation
 				atomic
 				{
 					pending = TRUE;
+					next_msg.addr = dest;
 					current_msg = next_msg;
 				}
 				

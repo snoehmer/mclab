@@ -13,14 +13,14 @@ implementation {
 	Ex2M.SensorNodeControl -> SensorNodeM.StdControl;	
 	
 	// base station control module
-	BaseStationM.BroadcastTimer -> TimerC.Timer[unique("timer")];
+	BaseStationM.BroadcastTimer -> TimerC.Timer[unique("Timer")];
 	BaseStationM.RoutingControl -> RoutingM.StdControl;
 	BaseStationM.RoutingNetwork -> RoutingM.RoutingNetwork;
 	BaseStationM.PacketHandler -> PacketM.PacketHandler;
 	BaseStationM.Leds -> LedsC;
 	
 	// sensor node control module
-	SensorNodeM.AcquireTimer -> TimerC.Timer[unique("timer")];
+	SensorNodeM.AcquireTimer -> TimerC.Timer[unique("Timer")];
 	SensorNodeM.RoutingControl -> RoutingM.StdControl;
 	SensorNodeM.RoutingNetwork -> RoutingM.RoutingNetwork;
 	SensorNodeM.PacketHandler -> PacketM.PacketHandler;
@@ -30,6 +30,7 @@ implementation {
 	RoutingM.MessageSender -> SenderM.MessageSender;
 	RoutingM.MessageReceiver -> ReceiverM.MessageReceiver;
 	RoutingM.PacketHandler -> PacketM.PacketHandler;
+	RoutingM.AgingTimer -> TimerC.Timer[unique("Timer")];
 	
 	// low-level buffered sender
 	RoutingM.SenderControl -> SenderM.StdControl;

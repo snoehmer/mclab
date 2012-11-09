@@ -2,9 +2,7 @@
 	main module of Ex2, acts as base station or sensor node, depending on TOS_LOCAL_ADDRESS
 **/
 
-// create only 1 base station with address 0
-#define BASE_STATION_MAX_ADDR 0  // all addresses <= this are treated as base stations
-
+includes GlobalConfig;
 
 module Ex2M
 {

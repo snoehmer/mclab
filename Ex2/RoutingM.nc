@@ -2,11 +2,9 @@
 	provides interfaces to receive messages
 */
 
-#define MAX_RT_ENTRIES      10
-
-
 includes MessageTypes;
 includes Routingtable;
+includes GlobalConfig;
 
 module RoutingM
 {
@@ -24,50 +22,67 @@ module RoutingM
 		interface StdControl as ReceiverControl;
 		
 		interface PacketHandler;
+		
+		interface Timer as AgingTimer;
 	}
 }
 
 implementation
 {
-	uint8_t rt_idx;
 	RoutingTableEntry routingtable[MAX_RT_ENTRIES];
 	
 	command result_t StdControl.init()
 	{
-		uint8_t count1 = 0;
+		uint8_t i;
 		
-		for(count1 = 0; count1 < MAX_RT_ENTRIES; count1++)
+		for(i = 0; i < MAX_RT_ENTRIES; i++)
 		{
-			routingtable[count1].basestation_id = 0;
-			routingtable[count1].mote_id = 0;
-			routingtable[count1].sequence_number = 0;
-			routingtable[count1].hop_count = 0;
-			routingtable[count1].aging = FALSE;
-			routingtable[count1].valid = FALSE;
+			routingtable[i].basestation_id = 0;
+			routingtable[i].mote_id = 0;
+			routingtable[i].sequence_number = 0;
+			routingtable[i].hop_count = 0;
+			routingtable[i].aging = FALSE;
+			routingtable[i].valid = FALSE;
 		}
-		rt_idx = 0;
 		
 		return rcombine(call SenderControl.init(), call ReceiverControl.init());
 	}
 	
 	command result_t StdControl.start()
 	{
-		return rcombine(call SenderControl.start(), call ReceiverControl.start());
+		return rcombine3(call SenderControl.start(), call ReceiverControl.start(), call AgingTimer.start(TIMER_REPEAT, ROUTING_AGING_TIMEOUT));
 	}
 	
 	command result_t StdControl.stop()
 	{		
-		return rcombine(call SenderControl.stop(), call ReceiverControl.stop());
+		return rcombine3(call SenderControl.stop(), call ReceiverControl.stop(), call AgingTimer.stop());
 	}
 	
 	
 	uint8_t getKnownBasestation(uint16_t basestation_id)
 	{	
-		uint8_t count1 = 0;
-		for(count1 = 0; count1 < MAX_RT_ENTRIES; count1++)
-			if(routingtable[count1].basestation_id == basestation_id)
-				return count1;
-		return MAX_RT_ENTRIES+1;
+		uint8_t i;
+		
+		for(i = 0; i < MAX_RT_ENTRIES; i++)
+		{
+			if(routingtable[i].valid && routingtable[i].basestation_id == basestation_id)
+				break;
+		}
+		
+		return i;  // if no entry was found, i = MAX_RT_ENTRIES
+	}
+	
+	uint8_t getFreeRTSlot()
+	{
+		uint8_t i;
+		
+		for(i = 0; i < MAX_RT_ENTRIES; i++)
+		{
+			if(!routingtable[i].valid)  // free slot found
+				break;
+		}
+		
+		return i;  // if no free slot is found, i = MAX_RT_ENTRIES
 	}
 	
 	command result_t RoutingNetwork.issueBroadcast(uint16_t basestation_id, uint16_t sequence_number)
@@ -81,58 +96,106 @@ implementation
 		return call MessageSender.sendMessage(new_broadcast, TOS_BCAST_ADDR);
 	}
 	
+	// tries to update the routing table, returns SUCCESS if this broadcast package should be forwarded (new route)
 	command result_t RoutingNetwork.updateRoutingtable(TOS_Msg *nmsg)
 	{
-		uint8_t idx = getKnownBasestation(call PacketHandler.getBasestationID(nmsg));
+		uint16_t bs_id = call PacketHandler.getBasestationID(nmsg);
+		uint8_t idx = getKnownBasestation(bs_id);
 		uint16_t seq_no = call PacketHandler.getSequenceNumber(nmsg);
+		uint16_t hop_count = call PacketHandler.getHopcount(nmsg);
+		uint16_t parent_addr = call PacketHandler.getSrc(nmsg);
 		
-		if( seq_no > routingtable[idx].sequence_number )
+		dbg(DBG_USR1, "RoutingM: got broadcast from bs %d with seq_nr %d, checking...\n", bs_id, seq_no);
+		
+		if(idx < MAX_RT_ENTRIES)  // check if entry for this BS already exists
 		{
-			uint16_t hop_count = call PacketHandler.getHopcount(nmsg);
-			
-			if(idx < MAX_RT_ENTRIES)
+			//entry exists, check if newer seq_nr
+			if(seq_no > routingtable[idx].sequence_number)
 			{
-				if(hop_count < routingtable[idx].hop_count || routingtable[idx].valid == FALSE || routingtable[idx].aging == TRUE)
+				// newer package, update routing table
+				dbg(DBG_USR1, "RoutingM: broadcast from known bs with newer seq_nr, update!\n");
+				
+				routingtable[idx].mote_id = parent_addr;
+				routingtable[idx].sequence_number = seq_no;
+				routingtable[idx].hop_count = hop_count;
+				routingtable[idx].aging = FALSE;
+				
+				return SUCCESS;
+			}
+			else if(seq_no == routingtable[idx].sequence_number)  // entry with same seq_nr exists, check hop_count
+			{
+				if(hop_count < routingtable[idx].hop_count)  // better route found
 				{
-					// update entry
-					routingtable[idx].mote_id = call PacketHandler.getSrc(nmsg);
-					routingtable[idx].sequence_number = seq_no;
+					// better route, update routing table
+					dbg(DBG_USR1, "RoutingM: broadcast from known bs with smaller hop_count, update!\n");
+					
+					routingtable[idx].mote_id = parent_addr;
 					routingtable[idx].hop_count = hop_count;
 					routingtable[idx].aging = FALSE;
-					routingtable[idx].valid = TRUE;
-					dbg(DBG_USR1, "RoutingM: Updating Routingtable entry for basestation_id = %d, mote_id = %d, sequence_number = %d, hop_count = %d\n", 
-						routingtable[idx].basestation_id, routingtable[idx].sequence_number, routingtable[idx].hop_count);
+					
+					return SUCCESS;
 				}
-				else dbg(DBG_USR1, "RoutingM: No update to routingtable due to higher hop_count to basestation_id = \n", routingtable[idx].basestation_id);
+				else if(hop_count == routingtable[idx].hop_count)  // same quality route found, possibly not the same route!
+				{
+					if(parent_addr == routingtable[idx].mote_id)  // exact same route, still alive -> clear aging flag
+					{
+						dbg(DBG_USR1, "RoutingM: broadcast from known bs over same route, clearing aging flag\n");
+						
+						routingtable[idx].aging = FALSE;
+						
+						return SUCCESS;
+					}
+					else  // other route found, not needed, ignore and drop broadcast package
+					{
+						dbg(DBG_USR1, "RoutingM: broadcast from known bs over other route with equal hop_count, ignoring\n");
+						
+						return FAIL;
+					}
+				}
+				else  // worse quality route found, ignore and drop broadcast package
+				{
+					dbg(DBG_USR1, "RoutingM: broadcast from known bs with higher hop_count, ignoring\n");
+					
+					return FAIL;
+				}
 			}
-			else
-			{			
-				// add new entry to RT
-				routingtable[rt_idx].basestation_id = call PacketHandler.getBasestationID(nmsg);
-				routingtable[rt_idx].mote_id = call PacketHandler.getSrc(nmsg);
-				routingtable[rt_idx].sequence_number = seq_no;
-				routingtable[rt_idx].hop_count = hop_count;
-				routingtable[rt_idx].aging = FALSE;
-				routingtable[rt_idx].valid = TRUE;
-			
-				dbg(DBG_USR1, "RoutingM: Updating Routingtable entry for basestation_id = %d, mote_id = %d, sequence_number = %d, hop_count = %d\n", 
-					routingtable[rt_idx].basestation_id, routingtable[rt_idx].sequence_number, routingtable[rt_idx].hop_count);
+			else  // old broadcast message with smaller seq_nr, ignore and drop
+			{
+				dbg(DBG_USR1, "RoutingM: old broadcast from known bs with older seq_nr, ignoring\n");
 				
-				rt_idx++;
-				
-				if(rt_idx >= MAX_RT_ENTRIES)
-					rt_idx = 0;
+				return FAIL;
 			}
-			return SUCCESS;
 		}
-		
-		return FAIL;
+		else  // no entry exists for this BS
+		{
+			// add the BS to the routing table
+			dbg(DBG_USR1, "RoutingM: broadcast from new bs, adding! (bs %d, route %d, seq_nr %d, hop_count %d\n", bs_id, parent_addr, seq_no, hop_count);
+			
+			idx = getFreeRTSlot();
+			
+			if(idx < MAX_RT_ENTRIES)  // free slot found
+			{
+				routingtable[idx].valid = TRUE;
+				routingtable[idx].basestation_id = bs_id;
+				routingtable[idx].mote_id = parent_addr;
+				routingtable[idx].sequence_number = seq_no;
+				routingtable[idx].hop_count = hop_count;
+				routingtable[idx].aging = FALSE;
+				
+				return SUCCESS;
+			}
+			else  // no free slot found! ignore
+			{
+				dbg(DBG_USR1, "RoutingM: no free slot in routing table found! ignoring!\n");
+				return SUCCESS;
+			}
+		}
 	}
 	
 	command result_t RoutingNetwork.forwardBroadcast(TOS_Msg *nmsg)
 	{
 		uint16_t old_hop_count = call PacketHandler.getHopcount(nmsg);
-		dbg(DBG_USR1, "RoutingM: Broadcastmessage forwarded.\n");	
+		dbg(DBG_USR1, "RoutingM: forwarding broadcast message\n");	
 		call PacketHandler.setHopcount(nmsg, ++old_hop_count);
 		call PacketHandler.setSrc(nmsg, TOS_LOCAL_ADDRESS);
 		return call MessageSender.sendMessage(*nmsg, TOS_BCAST_ADDR);
@@ -146,13 +209,13 @@ implementation
 		
 		if(idx < MAX_RT_ENTRIES)
 		{
-			dbg(DBG_USR1, "RoutingM: Sending data message to dest = \n", dest);
+			dbg(DBG_USR1, "RoutingM: Sending data message to dest %d\n", dest);
 			return call MessageSender.sendMessage(new_data_msg, routingtable[idx].mote_id);
 		}
 		else 
 		{
-			dbg(DBG_USR1, "RoutingM: Sending data message failed due to unsufficent destination = \n", dest);
-			return FAIL;
+			dbg(DBG_USR1, "RoutingM: unknown destination base station %d, cannot send package\n", dest);
+			return SUCCESS;
 		}
 	}
 	
@@ -160,15 +223,16 @@ implementation
 	{
 		uint16_t dest = call PacketHandler.getBasestationID(nmsg); 
 		uint8_t idx = getKnownBasestation(dest);
+		
 		if(idx < MAX_RT_ENTRIES)
 		{
-			dbg(DBG_USR1, "RoutingM: Forward data message to MoteID = \n", routingtable[idx].mote_id);
+			dbg(DBG_USR1, "RoutingM: Forward data message to MoteID %d (dest %d)\n", routingtable[idx].mote_id, dest);
 			return call MessageSender.sendMessage(*nmsg, routingtable[idx].mote_id);
 		}
 		else
 		{
-			dbg(DBG_USR1, "RoutingM: Forward data message failed due to unsufficent destination = \n", dest);
-			return FAIL;
+			dbg(DBG_USR1, "RoutingM: unknown destination base station %d, not forwarding package\n", dest);
+			return SUCCESS;
 		}
 	}
 	
@@ -189,10 +253,15 @@ implementation
 		{
 			// received a broadcast, process it
 			if(call RoutingNetwork.updateRoutingtable(&new_msg))
+			{
+				dbg(DBG_USR1, "RoutingM: updated routing table, forwarding broadcast\n");
+				
 				return call RoutingNetwork.forwardBroadcast(&new_msg);
+			}
 			else 
 			{
-				dbg(DBG_USR1, "RoutingM: Discarded Message due to old sequence number\n");
+				dbg(DBG_USR1, "RoutingM: routing table not updated, dropping broadcast\n");
+				
 				return SUCCESS;
 			}
 		}
@@ -201,6 +270,8 @@ implementation
 			// received a data message, check if I am the destination
 			if(new_msg.addr == TOS_LOCAL_ADDRESS)
 			{
+				dbg(DBG_USR1, "RoutingM: received data package for me, signaling event\n");
+				
 				signal RoutingNetwork.receivedDataMsg(call PacketHandler.getSrc(&new_msg), 
 													  call PacketHandler.getData1(&new_msg),
 													  call PacketHandler.getData2(&new_msg),
@@ -211,6 +282,8 @@ implementation
 			}
 			else  // I am not the destination, process the data message
 			{
+				dbg(DBG_USR1, "RoutingM: received data package not for me, trying to forward\n");
+				
 				return call RoutingNetwork.forwardDataMsg(&new_msg);
 			}
 		}
@@ -219,5 +292,32 @@ implementation
 			dbg(DBG_USR1, "RoutingM: received unknown message type, ignoring!\n");
 			return SUCCESS;
 		}
+	}
+	
+	event result_t AgingTimer.fired()
+	{
+		uint8_t i;
+		dbg(DBG_USR1, "RoutingM: aging timer fired, searching for old routing table entries\n");
+		
+		for(i = 0; i < MAX_RT_ENTRIES; i++)
+		{
+			if(routingtable[i].valid)  // found a valid entry
+			{
+				if(!routingtable[i].aging)  // found an alive entry, set aging flag to test if still alive
+				{
+					routingtable[i].aging = TRUE;
+				}
+				else  // found an entry that is no longer alive and hasnt been reactivated since last check
+				{
+					// this entry is old, remove it from routing table
+					dbg(DBG_USR1, "RoutingM: aging timer found an old entry, deleting! (bs_id=%d, parent=%d, seq_nr=%d, hop_count=%d)\n", 
+						routingtable[i].basestation_id, routingtable[i].mote_id, routingtable[i].sequence_number, routingtable[i].hop_count);
+						
+					routingtable[i].valid = FALSE;
+				}
+			}
+		}
+	
+		return SUCCESS;
 	}
 }

@@ -3,9 +3,6 @@
 <target loop="false" name="Target mica2" nostdinc="false" path="" time="3.0">
 <selected>mica2</selected>
 <default>true</default>
-<boards>
-<board>basicsb</board>
-</boards>
 <extras>
 <extra name="install">
 <param>
@@ -29,5 +26,8 @@
 <boards>
 <board>basicsb</board>
 </boards>
+<extras>
+<extra name="sim"/>
+</extras>
 </target>
 </buildTargets>
