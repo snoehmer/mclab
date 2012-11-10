@@ -34,7 +34,7 @@ implementation
 	bool pending;
 	TOS_Msg current_msg;
 	
-	
+	// add message to send-buffer
 	result_t buffer_add(struct TOS_Msg new_msg, uint16_t dest)
 	{
 		if(size >= SEND_BUFFER_SIZE)
@@ -58,6 +58,7 @@ implementation
 		return SUCCESS;
 	}
 	
+	// get message from send-buffer
 	result_t buffer_get(TOS_Msg *msg, uint16_t *dest)
 	{
 		if(size <= 0)
@@ -81,6 +82,7 @@ implementation
 		return SUCCESS;
 	}
 	
+	// determe if buffer is empty
 	bool buffer_isEmpty()
 	{
 		return (size == 0);

@@ -28,7 +28,7 @@ implementation
 	uint8_t read_pos;
 	uint8_t size;
 	
-	
+	// adds message to receive buffer if possible
 	result_t buffer_add(TOS_Msg new_msg)
 	{
 		if(size >= RECEIVE_BUFFER_SIZE)
@@ -51,6 +51,7 @@ implementation
 		return SUCCESS;
 	}
 	
+	// returns message from receive buffer
 	result_t buffer_get(TOS_Msg *msg)
 	{
 		if(size <= 0)

@@ -152,11 +152,15 @@ implementation
 						
 						return SUCCESS;
 					}
-					else  // other route found, not needed, ignore and drop broadcast package
+					else  // other route found, we take it because this one is working for sure; other route OoO due to moving Mote
 					{
-						dbg(DBG_USR2, "RoutingM: broadcast from known bs over other route with equal hop_count, ignoring\n");
+						dbg(DBG_USR2, "RoutingM: broadcast from known bs over other route with equal hop_count, update to ensure working route\n");
+					
+						routingtable[idx].mote_id = parent_addr;
+						routingtable[idx].hop_count = hop_count;
+						routingtable[idx].aging = FALSE;
 						
-						return FAIL;
+						return SUCCESS;
 					}
 				}
 				else  // worse quality route found, ignore and drop broadcast package
@@ -216,7 +220,7 @@ implementation
 		
 		if(idx < MAX_RT_ENTRIES)
 		{
-			dbg(DBG_USR2, "RoutingM: Sending data message to bs %d over node %d\n", dest, routingtable[idx].mote_id);
+			dbg(DBG_USR2, "RoutingM: Sending data package to bs %d over node %d\n", dest, routingtable[idx].mote_id);
 			return call MessageSender.sendMessage(new_data_msg, routingtable[idx].mote_id);
 		}
 		else 
@@ -233,7 +237,7 @@ implementation
 		
 		if(idx < MAX_RT_ENTRIES)
 		{
-			dbg(DBG_USR2, "RoutingM: Forward data message to MoteID %d (dest %d)\n", routingtable[idx].mote_id, dest);
+			dbg(DBG_USR2, "RoutingM: Forward data package to MoteID %d (dest %d)\n", routingtable[idx].mote_id, dest);
 			return call MessageSender.sendMessage(*nmsg, routingtable[idx].mote_id);
 		}
 		else

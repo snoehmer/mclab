@@ -7,7 +7,7 @@ enum
 	// general configuration
 	
 	// create only 1 base station with address 0
-	BASE_STATION_MAX_ADDR = 0,  			// all addresses <= this are treated as base stations
+	BASE_STATION_MAX_ADDR = 1,  			// all addresses <= this are treated as base stations
 
 
 	// base station configuration

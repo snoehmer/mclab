@@ -3,14 +3,14 @@ includes MessageTypes;
 configuration Ex2 {
 }
 implementation {
-	components Main, Ex2M, BaseStationM, SensorNodeM, ReceiverM, SenderM, PacketM, RoutingM, GenericComm, LedsC, TimerC;
+	components Main, Ex2M, BaseStationM, SensorMoteM, ReceiverM, SenderM, PacketM, RoutingM, GenericComm, LedsC, TimerC;
 	
 	// main controls
 	Main.StdControl -> Ex2M.StdControl;
 	
 	// main control module
 	Ex2M.BaseStationControl -> BaseStationM.StdControl;
-	Ex2M.SensorNodeControl -> SensorNodeM.StdControl;	
+	Ex2M.SensorMoteControl -> SensorMoteM.StdControl;	
 	
 	// base station control module
 	BaseStationM.BroadcastTimer -> TimerC.Timer[unique("Timer")];
@@ -20,11 +20,11 @@ implementation {
 	BaseStationM.Leds -> LedsC;
 	
 	// sensor node control module
-	SensorNodeM.AcquireTimer -> TimerC.Timer[unique("Timer")];
-	SensorNodeM.RoutingControl -> RoutingM.StdControl;
-	SensorNodeM.RoutingNetwork -> RoutingM.RoutingNetwork;
-	SensorNodeM.PacketHandler -> PacketM.PacketHandler;
-	SensorNodeM.Leds -> LedsC;
+	SensorMoteM.AcquireTimer -> TimerC.Timer[unique("Timer")];
+	SensorMoteM.RoutingControl -> RoutingM.StdControl;
+	SensorMoteM.RoutingNetwork -> RoutingM.RoutingNetwork;
+	SensorMoteM.PacketHandler -> PacketM.PacketHandler;
+	SensorMoteM.Leds -> LedsC;
 	
 	// routing manager
 	RoutingM.MessageSender -> SenderM.MessageSender;

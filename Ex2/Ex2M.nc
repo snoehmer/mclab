@@ -13,7 +13,7 @@ module Ex2M
 	uses
 	{
 		interface StdControl as BaseStationControl;
-		interface StdControl as SensorNodeControl;
+		interface StdControl as SensorMoteControl;
 	}
 }
 
@@ -30,7 +30,7 @@ implementation
 		else  // we are a sensor node
 		{
 			dbg(DBG_USR3, "Ex2M[%d]: initing, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
-			return call SensorNodeControl.init();
+			return call SensorMoteControl.init();
 		}
 	}
 	
@@ -44,7 +44,7 @@ implementation
 		else  // we are a sensor node
 		{
 			dbg(DBG_USR3, "Ex2M[%d]: starting, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
-			return call SensorNodeControl.start();
+			return call SensorMoteControl.start();
 		}
 	}
 
@@ -58,7 +58,7 @@ implementation
 		else  // we are a sensor node
 		{
 			dbg(DBG_USR3, "Ex2M[%d]: stopping, I am a sensor node!\n", TOS_LOCAL_ADDRESS);
-			return call SensorNodeControl.start();
+			return call SensorMoteControl.start();
 		}
 	}
 }

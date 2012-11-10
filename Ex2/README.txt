@@ -13,7 +13,7 @@ Wir arbeiten mit Kapselung von Nachrichten wobei es 3 Layer gibt:
 1) Die erste Schicht ist entweder eine BroadcastMsg oder eine SimpleDataMsg. 
 BroadcastMsg werden als broadcasts an alle Stationen versendet und enthalten 
 Informationen über die Basisstations ID, den Hop Count, Sequence Number sowie 
-ID der letzten Mote (sender_addr).
+ID der letzten Mote (parent_addr).
 SimpleDataMsg dienen zum versenden von Daten von den Motes zur Basisstation. 
 Diese Pakete enthalten nur die ID der Basisstation, die ID der sendenden Mote 
 sowie 4 Datenfelder.
@@ -23,11 +23,11 @@ welche aus einer Message plus Message Typ besteht.
 (Standardtyp) verschickt.
 
 Routingtable:
-Die Routingtable hat eine fixe Größe die sich im RoutingM.nc via GlobalConfig.h
-leicht ändern lässt. Ein RoutingtableEntry besteht aus der basestation_id, der 
-mote_id über welche zur Basisstation gesendet werden muss, sequence_number der 
-letzten empfangenen Broadcastmessage, hop_count der aktuellen Route, aging Flag 
-und ein valid Flag.
+Die Routingtable hat eine fixe Größe die sich im GlobalConfig.h leicht ändern 
+lässt. Ein RoutingtableEntry besteht aus der basestation_id, der mote_id über 
+welche zur Basisstation gesendet werden muss, sequence_number der letzten 
+empfangenen Broadcastmessage, hop_count der aktuellen Route, aging Flag und 
+ein valid Flag.
 Wird ein gültiger Eintrag in die Routingtable geschrieben so muss das valid 
 Flag auf TRUE und das aging Flag auf FALSE gesetzt werden. Auf den Motes läuft 
 ein Aging-Timer der Periodisch das aging Flag der RoutingtableEntries auf TRUE 
