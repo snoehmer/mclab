@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<buildTargets>
+<target loop="false" name="Target mica2" nostdinc="false" path="" time="3.0">
+<selected>mica2</selected>
+<default>true</default>
+<extras>
+<extra name="install">
+<param>
+<name>Mote Id</name>
+<value/>
+<abc>true</abc>
+</param>
+</extra>
+<extra name="mib510">
+<param>
+<name>&lt;dev&gt;</name>
+<value>/dev/ttyS0</value>
+<abc>false</abc>
+</param>
+</extra>
+</extras>
+</target>
+<target loop="false" name="PC" nostdinc="false" path="" time="2.0">
+<selected>pc</selected>
+<default>false</default>
+<boards>
+<board>basicsb</board>
+</boards>
+<extras>
+<extra name="sim"/>
+</extras>
+</target>
+</buildTargets>
