@@ -31,6 +31,7 @@ implementation {
 	RoutingM.MessageReceiver -> ReceiverM.MessageReceiver;
 	RoutingM.PacketHandler -> PacketM.PacketHandler;
 	RoutingM.AgingTimer -> TimerC.Timer[unique("Timer")];
+	RoutingM.Leds -> LedsC;
 	
 	// low-level buffered sender
 	RoutingM.SenderControl -> SenderM.StdControl;

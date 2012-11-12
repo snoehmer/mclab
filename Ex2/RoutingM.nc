@@ -24,6 +24,7 @@ module RoutingM
 		interface PacketHandler;
 		
 		interface Timer as AgingTimer;
+		interface Leds;
 	}
 }
 
@@ -262,6 +263,12 @@ implementation
 
 		if(call PacketHandler.getMsgType(&new_msg) == MSG_TYPE_BCAST)
 		{
+			// blink LED if I am a Node
+			if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR)
+			{
+				call Leds.redToggle();
+			}
+			
 			// received a broadcast, process it
 			if(call RoutingNetwork.updateRoutingtable(&new_msg))
 			{
