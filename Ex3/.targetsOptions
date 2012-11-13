@@ -3,18 +3,21 @@
 <target loop="false" name="Target mica2" nostdinc="false" path="" time="3.0">
 <selected>mica2</selected>
 <default>true</default>
+<boards>
+<board>basicsb</board>
+</boards>
 <extras>
 <extra name="install">
 <param>
 <name>Mote Id</name>
-<value/>
+<value>0</value>
 <abc>true</abc>
 </param>
 </extra>
 <extra name="mib510">
 <param>
 <name>&lt;dev&gt;</name>
-<value>/dev/ttyS0</value>
+<value>/dev/ttyS6</value>
 <abc>false</abc>
 </param>
 </extra>
@@ -23,11 +26,5 @@
 <target loop="false" name="PC" nostdinc="false" path="" time="2.0">
 <selected>pc</selected>
 <default>false</default>
-<boards>
-<board>basicsb</board>
-</boards>
-<extras>
-<extra name="sim"/>
-</extras>
 </target>
 </buildTargets>
