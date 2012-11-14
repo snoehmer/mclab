@@ -4,7 +4,7 @@
 
 includes GlobalConfig;
 
-module Ex2M
+module Ex3M
 {
 	provides
 	{
@@ -14,6 +14,7 @@ module Ex2M
 	{
 		interface StdControl as BaseStationControl;
 		interface StdControl as SensorMoteControl;
+		interface StdControl as NightGuardControl;
 	}
 }
 
@@ -27,11 +28,10 @@ implementation
 			dbg(DBG_USR3, "Ex2M[%d]: initing, I am a base station!\n", TOS_LOCAL_ADDRESS);
 			return call BaseStationControl.init();
 		}
-		else if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR:
+		else if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR)
 		{
 			dbg(DBG_USR3, "Ex2M[%d]: initing, I am a night guard!\n", TOS_LOCAL_ADDRESS);
-			//return call NightGuardControl.init();		
-			return SUCCESS;
+			return call NightGuardControl.init();
 		}
 		else  // we are a sensor node
 		{
@@ -47,11 +47,10 @@ implementation
 			dbg(DBG_USR3, "Ex2M[%d]: starting, I am a base station!\n", TOS_LOCAL_ADDRESS);
 			return call BaseStationControl.start();
 		}
-		else if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR:
+		else if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR)
 		{
 			dbg(DBG_USR3, "Ex2M[%d]: starting, I am a night guard!\n", TOS_LOCAL_ADDRESS);
-			//return call NightGuardControl.start();		
-			return SUCCESS;
+			return call NightGuardControl.start();		
 		}
 		else  // we are a sensor node
 		{
@@ -67,11 +66,10 @@ implementation
 			dbg(DBG_USR3, "Ex2M[%d]: stopping, I am a base station!\n", TOS_LOCAL_ADDRESS);
 			return call BaseStationControl.stop();
 		}
-		else if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR:
+		else if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR)
 		{
 			dbg(DBG_USR3, "Ex2M[%d]: stopping, I am a night guard!\n", TOS_LOCAL_ADDRESS);
-			//return call NightGuardControl.stop();		
-			return SUCCESS;
+			return call NightGuardControl.stop();
 		}
 		else  // we are a sensor node
 		{

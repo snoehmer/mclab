@@ -156,7 +156,7 @@ implementation
 					bmsg = &(nmsg->bmsg);
 					
 					dbg(DBG_USR1, "(bcast): bs_id = %d, hopcount = %d, seqnr = %d, sender_addr = %d\n", bmsg->basestation_id,
-						bmsg->hop_count, bmsg->seq_nr, bmsg->sender_addr);
+						bmsg->hop_count, bmsg->seq_nr, bmsg->parent_addr);
 				}
 				else if(nmsg->msg_type == MSG_TYPE_DATA)
 				{

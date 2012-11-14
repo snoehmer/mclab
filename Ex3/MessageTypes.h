@@ -7,8 +7,16 @@ typedef struct BroadcastMsg
 	uint16_t basestation_id;
 	uint16_t seq_nr;
 	uint16_t hop_count;
-	uint16_t sender_addr;
+	uint16_t parent_addr;
 } BroadcastMsg;
+
+typedef struct CommandMsg
+{
+	uint16_t sender_id;
+	uint16_t destination_id;
+	uint8_t command_id;
+	uint16_t argument;
+} CommandMsg;
 
 typedef struct SimpleDataMsg
 {
@@ -28,6 +36,7 @@ typedef struct NetworkMsg
 	{
 		BroadcastMsg bmsg;
 		SimpleDataMsg dmsg;
+		CommandMsg cmsg;
 	};
 	
 } NetworkMsg;
@@ -36,5 +45,6 @@ enum
 {
 	AM_NETMSG = 5,
 	MSG_TYPE_BCAST = 1,
-	MSG_TYPE_DATA = 2
+	MSG_TYPE_DATA = 2,
+	MSG_TYPE_COMMAND = 3
 };

@@ -18,12 +18,9 @@
 # ----------------------------------------------------------------
 
 
-COMPONENT=Ex2
-#COMPONENT=Ex2Test
+COMPONENT=Ex3
 ifdef APP_MAKERULES
 include $(APP_MAKERULES)
 else
 include ../Makerules
 endif
-
-CFLAGS=-DCC1K_DEFAULT_FREQ=CC1K_915_998_MHZ

@@ -3,7 +3,7 @@ includes MessageTypes;
 configuration Ex3 {
 }
 implementation {
-	components Main, Ex3M, BaseStationM, NightGuardM, SensorMoteM, ReceiverM, SenderM, PacketM, RoutingM, GenericComm, LedsC, TimerC;
+	components Main, Ex3M, BaseStationM, NightGuardM, SensorMoteM, ReceiverM, SenderM, PacketM, RoutingM, GenericComm, LedsC, TimerC, SenseM, NGNeighborsM, DemoSensorC;
 	
 	// main controls
 	Main.StdControl -> Ex3M.StdControl;
@@ -11,6 +11,7 @@ implementation {
 	// main control module
 	Ex3M.BaseStationControl -> BaseStationM.StdControl;
 	Ex3M.SensorMoteControl -> SensorMoteM.StdControl;	
+	Ex3M.NightGuardControl -> NightGuardM.StdControl;	
 	
 	// base station control module
 	BaseStationM.BroadcastTimer -> TimerC.Timer[unique("Timer")];
@@ -25,6 +26,7 @@ implementation {
 	NightGuardM.RoutingNetwork -> RoutingM.RoutingNetwork;
 	NightGuardM.PacketHandler -> PacketM.PacketHandler;
 	NightGuardM.Leds -> LedsC;
+	NightGuardM.NGNeighbors -> NGNeighborsM.NGNeighbors;
 	
 	// sensor node control module
 	SensorMoteM.AcquireTimer -> TimerC.Timer[unique("Timer")];
@@ -32,13 +34,14 @@ implementation {
 	SensorMoteM.RoutingNetwork -> RoutingM.RoutingNetwork;
 	SensorMoteM.PacketHandler -> PacketM.PacketHandler;
 	SensorMoteM.Leds -> LedsC;
+	SensorMoteM.SenseControl -> SenseM.StdControl;
+	SensorMoteM.Sense -> SenseM.Sense;
 	
 	// routing manager
 	RoutingM.MessageSender -> SenderM.MessageSender;
 	RoutingM.MessageReceiver -> ReceiverM.MessageReceiver;
 	RoutingM.PacketHandler -> PacketM.PacketHandler;
 	RoutingM.AgingTimer -> TimerC.Timer[unique("Timer")];
-	RoutingM.Leds -> LedsC;
 	
 	// low-level buffered sender
 	RoutingM.SenderControl -> SenderM.StdControl;
@@ -49,4 +52,14 @@ implementation {
 	RoutingM.ReceiverControl -> ReceiverM.StdControl;
 	ReceiverM.ReceiverControl -> GenericComm;
 	ReceiverM.ReceiveMsg  -> GenericComm.ReceiveMsg[AM_NETMSG];
+	
+	// Sensor module
+	SenseM.Timer  -> TimerC.Timer[unique("Timer")];
+	SenseM.ADC -> DemoSensorC;
+    SenseM.ADCControl -> DemoSensorC;
+    SenseM.Leds -> LedsC;
+    SenseM.InternalCommunication -> SensorMoteM.InternalCommunication;
+    
+    // Neighbors management
+    NGNeighborsM.InternalCommunication -> SensorMoteM.InternalCommunication;
 }

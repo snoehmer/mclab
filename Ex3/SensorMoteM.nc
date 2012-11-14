@@ -9,12 +9,17 @@ module SensorMoteM
 	provides
 	{
 		interface StdControl;
+		
+		interface InternalCommunication;
 	}
 	uses
 	{
 		interface StdControl as RoutingControl;
 		interface RoutingNetwork;
 		interface PacketHandler;
+				
+		interface StdControl as SenseControl;
+		interface Sense;
 		
 		interface Leds;
 		interface Timer as AcquireTimer;
@@ -22,7 +27,7 @@ module SensorMoteM
 }
 
 implementation
-{	
+{		
 	command result_t StdControl.init()
 	{	
 		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
@@ -38,9 +43,13 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
 		{
+			call Leds.greenOff();
+			call Leds.redOff();
+			call Leds.yellowOff();
+			
 			dbg(DBG_USR2, "SensorMoteM[%d]: starting", TOS_LOCAL_ADDRESS);
-			call Leds.yellowOff();  // yellow LED off signals sensor node
-			return rcombine(call RoutingControl.start(), call AcquireTimer.start(TIMER_REPEAT, SENSOR_NODE_DATA_RATE));
+			
+			return call RoutingControl.start();
 		}
 		return SUCCESS;
 	}
@@ -50,7 +59,7 @@ implementation
 		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
 		{
 			dbg(DBG_USR2, "SensorMoteM[%d]: stopping", TOS_LOCAL_ADDRESS);
-			return rcombine(call RoutingControl.stop(), call AcquireTimer.stop());
+			return call RoutingControl.stop();
 		}
 		
 		return SUCCESS;
@@ -59,18 +68,17 @@ implementation
 	
 	event result_t AcquireTimer.fired()
 	{
-		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR && SENSOR_NODE_MESSAGES_ENABLED)
+		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
 		{
 			if(!SENSOR_NODE_SELECTIVE_ENABLED || (SENSOR_NODE_SELECTIVE_ENABLED && TOS_LOCAL_ADDRESS == SENSOR_NODE_SELECTIVE_ADDR))
 			{
 				// send a new data packet
-				uint8_t data1 = SENSOR_DUMMY_DATA;
-				uint8_t data2 = SENSOR_DUMMY_DATA - 1;
-				uint8_t data3 = SENSOR_DUMMY_DATA + 7;
-				uint8_t data4 = SENSOR_DUMMY_DATA * 2;
-				
-				call Leds.greenToggle();  // blinking green LED signals message sending
-				
+				uint16_t mean = call Sense.getMean();
+				uint8_t data1 = (mean & 0xFF);
+				uint8_t data2 = mean>>8;
+				uint8_t data3 = 0;
+				uint8_t data4 = 0;
+								
 				if(call RoutingNetwork.isKnownBasestation(SENSOR_NODE_TARGET_BASE_STATION))
 				{
 					dbg(DBG_USR3, "SensorMoteM[%d]: acquire timer fired, sending data package to known bs %d\n", TOS_LOCAL_ADDRESS, SENSOR_NODE_TARGET_BASE_STATION);
@@ -93,13 +101,66 @@ implementation
 	event result_t RoutingNetwork.receivedDataMsg(uint16_t src, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
 	{
 		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
-		{
-			call Leds.redToggle();  // red LED blinking signals message receiving
-		
+		{		
 			dbg(DBG_USR3, "SensorMoteM[%d]: aha, I received a data package addressed to me. ignoring.", TOS_LOCAL_ADDRESS);
 			dbg(DBG_USR3, " details: src=%d, data=[%d %d %d %d]\n", src, data1, data2, data3, data4);
 		}
 		
+		return SUCCESS;
+	}
+	
+	// received command messages
+	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint16_t command_id, uint16_t argument)
+	{
+		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
+		{
+			dbg(DBG_USR3, "SensorMote[%d]: received a command package for me!", TOS_LOCAL_ADDRESS);
+			dbg(DBG_USR3, " details: =%d, data=[ %d %d %d %d ]\n", sender_id, command_id, argument);
+			
+			switch(argument)
+			{
+				case CODE_FOUND_MOTE:
+					dbg(DBG_USR3, "SensorMote[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					return SUCCESS;
+				break;
+				case CODE_LOST_MOTE:
+					dbg(DBG_USR3, "SensorMote[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					return SUCCESS;
+				break;
+				case CODE_ALARM:
+					dbg(DBG_USR3, "SensorMote[%d]: ALARM ON.\n", TOS_LOCAL_ADDRESS);
+					call Leds.redOn();
+					// alarm on, need to send notifications to night guard and base station
+					call RoutingNetwork.sendCommandMsg(sender_id, CODE_ALARM, TOS_LOCAL_ADDRESS);
+					call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_ALARM, TOS_LOCAL_ADDRESS);
+					return SUCCESS;
+				break;
+				case CODE_ALARM_OFF:
+					dbg(DBG_USR3, "SensorMote[%d]: Alarm off.\n", TOS_LOCAL_ADDRESS);
+					call Leds.redOff();
+					// alarm off, need to send notifications to night guard and base station
+					call RoutingNetwork.sendCommandMsg(sender_id, CODE_ALARM_OFF, TOS_LOCAL_ADDRESS);
+					call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_ALARM_OFF, TOS_LOCAL_ADDRESS);
+					return SUCCESS;
+				break;
+				case CODE_ALARM_SYSTEM_ON:
+					dbg(DBG_USR3, "SensorMote[%d]: Alarm-system turned ON by basestation[%d].", TOS_LOCAL_ADDRESS, argument);
+					return rcombine(call SenseControl.start(), call AcquireTimer.start(TIMER_REPEAT, SENSOR_NODE_DATA_RATE));
+				break;
+				case CODE_ALARM_SYSTEM_OFF:
+					dbg(DBG_USR3, "SensorMote[%d]: Alarm-system turned OFF by basestation[%d].", TOS_LOCAL_ADDRESS, argument);
+					return rcombine(call SenseControl.stop(), call AcquireTimer.stop());
+				break;
+				default:
+					dbg(DBG_USR3, "SensorMote[%d]: Unknown command received, ignoring.", TOS_LOCAL_ADDRESS);
+			}
+		}
+		return SUCCESS;
+	}
+	
+	command result_t InternalCommunication.triggerCommand(uint16_t command_id, uint16_t argument)
+	{
+		signal RoutingNetwork.receivedCommandMsg(TOS_LOCAL_ADDRESS, command_id, argument);
 		return SUCCESS;
 	}
 }

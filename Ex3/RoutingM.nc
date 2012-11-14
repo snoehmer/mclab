@@ -24,13 +24,13 @@ module RoutingM
 		interface PacketHandler;
 		
 		interface Timer as AgingTimer;
-		interface Leds;
 	}
 }
 
 implementation
 {
 	RoutingTableEntry routingtable[MAX_RT_ENTRIES];
+	bool alarmstate = FALSE;
 	
 	command result_t StdControl.init()
 	{
@@ -231,6 +231,24 @@ implementation
 		}
 	}
 	
+	command result_t RoutingNetwork.sendCommandMsg(uint16_t destination_id, uint16_t command_id, uint16_t argument)
+	{
+		TOS_Msg new_cmd_msg = call PacketHandler.assembleCommandMessage(destination_id, command_id, argument);
+		uint8_t idx = getKnownBasestation(destination_id);
+		
+		
+		if(idx < MAX_RT_ENTRIES)
+		{
+			dbg(DBG_USR2, "RoutingM: Sending data package to bs %d over node %d\n", destination_id, routingtable[idx].mote_id);
+			return call MessageSender.sendMessage(new_cmd_msg, routingtable[idx].mote_id);
+		}
+		else 
+		{
+			dbg(DBG_USR2, "RoutingM: unknown destination base station %d, cannot send package\n", destination_id);
+			return SUCCESS;
+		}
+	}
+	
 	command result_t RoutingNetwork.forwardDataMsg(TOS_Msg *nmsg)
 	{
 		uint16_t dest = call PacketHandler.getBasestationID(nmsg); 
@@ -248,6 +266,23 @@ implementation
 		}
 	}
 	
+	command result_t RoutingNetwork.forwardCommandMsg(TOS_Msg *nmsg)
+	{
+		uint16_t dest = call PacketHandler.getBasestationID(nmsg); 
+		uint8_t idx = getKnownBasestation(dest);
+		
+		if(idx < MAX_RT_ENTRIES)
+		{
+			dbg(DBG_USR2, "RoutingM: Forward command package to MoteID %d (dest %d)\n", routingtable[idx].mote_id, dest);
+			return call MessageSender.sendMessage(*nmsg, routingtable[idx].mote_id);
+		}
+		else
+		{
+			dbg(DBG_USR2, "RoutingM: unknown destination base station %d, not forwarding command package\n", dest);
+			return SUCCESS;
+		}
+	}
+	
 	command bool RoutingNetwork.isKnownBasestation(uint16_t basestation_id)
 	{	
 		if(getKnownBasestation(basestation_id) < MAX_RT_ENTRIES)
@@ -256,25 +291,37 @@ implementation
 			return FALSE;
 	}
 	
-	
 	event result_t MessageReceiver.receivedMessage(TOS_Msg new_msg)
 	{
 		dbg(DBG_USR2, "RoutingM: Received a new Message, event MessageReceiver.receivedMessage triggered.\n");
 
 		if(call PacketHandler.getMsgType(&new_msg) == MSG_TYPE_BCAST)
-		{
-			// blink LED if I am a Node
-			if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR)
-			{
-				call Leds.redToggle();
-			}
-			
+		{			
 			// received a broadcast, process it
 			if(call RoutingNetwork.updateRoutingtable(&new_msg))
-			{
-				dbg(DBG_USR2, "RoutingM: updated routing table, forwarding broadcast\n");
-				
-				return call RoutingNetwork.forwardBroadcast(&new_msg);
+			{	
+				uint16_t issuer = call PacketHandler.getBasestationID(&new_msg);
+				if(issuer <= BASE_STATION_MAX_ADDR)
+				{
+					dbg(DBG_USR2, "RoutingM: updated routing table, forwarding broadcast\n");
+					return call RoutingNetwork.forwardBroadcast(&new_msg);
+				}
+				else if(issuer > BASE_STATION_MAX_ADDR && issuer <= NIGHT_GUARD_MAX_ADDR)
+				{
+					dbg(DBG_USR3, "[%d] RoutingM: NightGuard[%d] found me, sending back ack.\n", TOS_LOCAL_ADDRESS, issuer);
+					if(alarmstate)
+					{
+						// currently in alarm state, need to turn alarm off
+						signal RoutingNetwork.receivedCommandMsg(TOS_LOCAL_ADDRESS, CODE_ALARM_OFF, TOS_LOCAL_ADDRESS);
+						
+					}
+					return call RoutingNetwork.sendCommandMsg(issuer, CODE_FOUND_MOTE, TOS_LOCAL_ADDRESS);
+				}
+				else
+				{
+					dbg(DBG_USR2, "RoutingM: Nothing to do with this broadcast.\n");
+					return SUCCESS;
+				}
 			}
 			else 
 			{
@@ -303,6 +350,30 @@ implementation
 				dbg(DBG_USR2, "RoutingM: received data package not for me, trying to forward\n");
 				
 				return call RoutingNetwork.forwardDataMsg(&new_msg);
+			}
+		}
+		else if(call PacketHandler.getMsgType(&new_msg) == MSG_TYPE_COMMAND)
+		{
+			// received a command message, check if I am the destination
+			uint16_t dest = call PacketHandler.getBasestationID(&new_msg);
+			if(dest == TOS_LOCAL_ADDRESS || dest == TOS_BCAST_ADDR)
+			{
+				dbg(DBG_USR2, "RoutingM: received command package for me, signaling event\n");
+				
+				signal RoutingNetwork.receivedCommandMsg(call PacketHandler.getSenderID(&new_msg),
+														 call PacketHandler.getCommandID(&new_msg),
+														 call PacketHandler.getArgument(&new_msg));
+				
+				if(dest == TOS_BCAST_ADDR)
+					return call RoutingNetwork.forwardCommandMsg(&new_msg); 
+				else
+					return SUCCESS;
+			}
+			else  // I am not the destination, process the command message
+			{
+				dbg(DBG_USR2, "RoutingM: received command package not for me, trying to forward\n");
+				
+				return call RoutingNetwork.forwardCommandMsg(&new_msg);
 			}
 		}
 		else  // unknown message received, ignore

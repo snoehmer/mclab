@@ -27,6 +27,8 @@ implementation
 			return message->bmsg.basestation_id;
 		else if( message->msg_type == MSG_TYPE_DATA )
 			return message->dmsg.basestation_id;
+		else if( message->msg_type == MSG_TYPE_COMMAND)
+			return message->cmsg.destination_id;
 		else return 0;
 		
 	}
@@ -51,7 +53,7 @@ implementation
 	{	
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
 		if( message->msg_type == MSG_TYPE_BCAST )
-			return message->bmsg.sender_addr;
+			return message->bmsg.parent_addr;
 		else if( message->msg_type == MSG_TYPE_DATA )
 			return message->dmsg.src_addr;
 		else return 0;
@@ -87,6 +89,30 @@ implementation
 		if( message->msg_type == MSG_TYPE_DATA )
 			return message->dmsg.data4;
 		else return 0;
+	}	
+	
+	command uint16_t PacketHandler.getSenderID(TOS_Msg *msg)
+	{	
+		NetworkMsg *message = (NetworkMsg *) msg->data;	
+		if( message->msg_type == MSG_TYPE_COMMAND )
+			return message->cmsg.sender_id;
+		else return 0;
+	}	
+	
+	command uint16_t PacketHandler.getCommandID(TOS_Msg *msg)
+	{	
+		NetworkMsg *message = (NetworkMsg *) msg->data;	
+		if( message->msg_type == MSG_TYPE_COMMAND )
+			return message->cmsg.command_id;
+		else return 0;
+	}	
+	
+	command uint16_t PacketHandler.getArgument(TOS_Msg *msg)
+	{	
+		NetworkMsg *message = (NetworkMsg *) msg->data;	
+		if( message->msg_type == MSG_TYPE_COMMAND )
+			return message->cmsg.argument;
+		else return 0;
 	}
 	
 	command void PacketHandler.setBasestationID(TOS_Msg *msg, uint16_t new_basestation_id)
@@ -116,7 +142,7 @@ implementation
 	{	
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
 		if( message->msg_type == MSG_TYPE_BCAST )
-			message->bmsg.sender_addr = new_sender_addr;
+			message->bmsg.parent_addr = new_sender_addr;
 		else if( message->msg_type == MSG_TYPE_DATA )
 			message->dmsg.src_addr = new_sender_addr;
 	}
@@ -161,7 +187,24 @@ implementation
 		new_broadcast_message->basestation_id = basestation_id;
 		new_broadcast_message->seq_nr = sequence_number;
 		new_broadcast_message->hop_count = hop_count;
-		new_broadcast_message->sender_addr = TOS_LOCAL_ADDRESS;
+		new_broadcast_message->parent_addr = TOS_LOCAL_ADDRESS;
+		
+		return new_TOS_message;
+	}
+	
+	command TOS_Msg PacketHandler.assembleCommandMessage
+		(uint16_t new_destination_id, uint16_t new_command_id, uint16_t new_argument)
+	{
+		TOS_Msg new_TOS_message;
+		NetworkMsg *new_network_message = (NetworkMsg*) new_TOS_message.data;
+		CommandMsg *new_command_message = &(new_network_message->cmsg);
+		
+		new_network_message->msg_type = MSG_TYPE_COMMAND;
+		
+		new_command_message->sender_id = TOS_LOCAL_ADDRESS;
+		new_command_message->destination_id = new_destination_id;
+		new_command_message->command_id = new_command_id;
+		new_command_message->argument = new_argument;
 		
 		return new_TOS_message;
 	}
