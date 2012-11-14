@@ -29,6 +29,7 @@ implementation
 {
 	// global variables
 	uint16_t seq_nr;  // a unique sequence number for each broadcast
+	bool alarm_mode;
 	
 	command result_t StdControl.init()
 	{
@@ -38,6 +39,8 @@ implementation
 			dbg(DBG_USR2, "NightGuard[%d]: initing", TOS_LOCAL_ADDRESS);
 			return rcombine(call Leds.init(), call RoutingControl.init());
 		}
+		
+		alarm_mode = FALSE;
 		
 		return SUCCESS;
 	}
@@ -72,6 +75,9 @@ implementation
 	// periodically send new broadcast messages
 	event result_t BroadcastTimer.fired()
 	{
+		if(alarm_mode)
+			call Leds.redToggle();
+			
 		if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR)
 		{		
 			// send a new broadcast packet
