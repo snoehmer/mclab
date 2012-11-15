@@ -117,7 +117,7 @@ implementation
 					{
 						dbg(DBG_USR3, "NightGuard[%d]: Found mote[%d], sending command to basestation.\n", TOS_LOCAL_ADDRESS, argument);
 						call NGNeighbors.updateNeighborstable(argument);
-						return call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_FOUND_MOTE, argument);  // TODO how to send to basestation?! direct or via Mote
+						return call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_FOUND_MOTE, argument);
 					}
 					else
 					{
@@ -127,7 +127,7 @@ implementation
 				break;
 				case CODE_LOST_MOTE:
 					dbg(DBG_USR3, "NightGuard[%d]: Lost mote[%d], sending command to basestation.\n", TOS_LOCAL_ADDRESS, argument);
-					return call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_LOST_MOTE, argument);  // TODO how to send to basestation?! direct or via Mote
+					return call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_LOST_MOTE, argument);
 				break;
 				case CODE_ALARM:
 					dbg(DBG_USR3, "NightGuard[%d]: mote[%d] reported an ALARM!\n", TOS_LOCAL_ADDRESS, argument);

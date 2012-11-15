@@ -27,7 +27,6 @@ implementation {
   uint16_t writePos;
   
   uint16_t mean;
-  uint16_t old_mean;
   
   uint8_t periodCount;
   
@@ -77,12 +76,10 @@ implementation {
 	if(periodCount == SENSOR_NODE_LED_PERIOD)
 	{
 		call Leds.yellowToggle();
-		periodCount++;
-	}
-	
-	if(periodCount > SENSOR_NODE_LED_PERIOD)
 		periodCount = 0;
-  	 	
+	}
+	periodCount++;
+	 	
     return call ADC.getData();
   }
 
@@ -98,13 +95,9 @@ implementation {
 	  	  sum = sum + values[i];
   	}
   	
-  	old_mean = mean;  
   	mean = sum / SENSOR_SIZE_SAMPLE_BUFFER;
  
- 	dbg(DBG_USR1, "SensorMote[%d] - SenseM: new mean is %d (SENSOR_ALARM_THRESHOLD is %d)\n", TOS_LOCAL_ADDRESS, mean, SENSOR_ALARM_THRESHOLD);
- 
- 	if(mean > SENSOR_ALARM_THRESHOLD && old_mean < SENSOR_ALARM_THRESHOLD)
- 	  call InternalCommunication.triggerCommand(CODE_ALARM, TOS_LOCAL_ADDRESS); 
+ 	dbg(DBG_USR3, "SensorMote[%d] - SenseM: new mean is %d (SENSOR_ALARM_THRESHOLD is %d)\n", TOS_LOCAL_ADDRESS, mean, SENSOR_ALARM_THRESHOLD);
   }
     
   command uint16_t Sense.getMean()
@@ -128,6 +121,9 @@ implementation {
   	  if(writePos >= SENSOR_SIZE_SAMPLE_BUFFER)
   	    writePos = 0;
   	}
+ 
+ 	if(data > SENSOR_ALARM_THRESHOLD)
+ 	  call InternalCommunication.triggerCommand(CODE_ALARM, data); 
   	
   	dbg(DBG_USR1, "SensorMote[%d]: got ADC data %d\n", TOS_LOCAL_ADDRESS, data);
   	

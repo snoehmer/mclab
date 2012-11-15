@@ -21,7 +21,7 @@ module SensorMoteM
 		
 		interface Leds;
 		interface Timer as AcquireTimer;
-		//interface Timer as LedsTimer;  //TODO LED TIMER FOR BLINKING YELLOW LED
+		//interface Timer as LedsTimer;
 	}
 }
 
@@ -95,6 +95,12 @@ implementation
 		
 		return SUCCESS;
 	}
+	
+		
+//	event result_t LedsTimer.fired()
+//	{
+//		return call Leds.yellowOn();
+//	}
 	
 	
 	event result_t RoutingNetwork.receivedDataMsg(uint16_t src, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)

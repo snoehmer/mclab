@@ -239,6 +239,10 @@ implementation
 	command result_t RoutingNetwork.sendCommandMsg(uint16_t destination_id, uint8_t command_id, uint16_t argument)
 	{
 		TOS_Msg new_cmd_msg = call PacketHandler.assembleCommandMessage(destination_id, command_id, argument, cmd_seq_no);
+		
+		if(command_id == CODE_ALARM)
+			alarmstate = TRUE;
+		
 		if( destination_id == TOS_BCAST_ADDR)
 		{
 			dbg(DBG_USR2, "RoutingM: Sending command package as broadcast, command_id = %d, cmd_seq_no = %d\n", destination_id, command_id, cmd_seq_no);
@@ -321,11 +325,13 @@ implementation
 				}
 				else if(issuer > BASE_STATION_MAX_ADDR && issuer <= NIGHT_GUARD_MAX_ADDR && TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
 				{
-					dbg(DBG_USR3, "[%d] RoutingM: NightGuard[%d] found me, sending back ack.\n", TOS_LOCAL_ADDRESS, issuer);
+					dbg(DBG_USR3, "[%d] RoutingM: NightGuard[%d] found me, sending back ack. alarmstate = %d\n", TOS_LOCAL_ADDRESS, issuer, alarmstate);
 					if(alarmstate)
 					{
+						dbg(DBG_USR3, "[%d] RoutingM: In alarmstate-turning off.\n", TOS_LOCAL_ADDRESS);
 						// currently in alarm state, need to turn alarm off
 						signal RoutingNetwork.receivedCommandMsg(TOS_LOCAL_ADDRESS, CODE_ALARM_OFF, TOS_LOCAL_ADDRESS);
+						alarmstate = FALSE;
 						
 					}
 					return call RoutingNetwork.sendCommandMsg(issuer, CODE_FOUND_MOTE, TOS_LOCAL_ADDRESS);
