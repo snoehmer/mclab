@@ -9,8 +9,6 @@ module SensorMoteM
 	provides
 	{
 		interface StdControl;
-		
-		interface InternalCommunication;
 	}
 	uses
 	{
@@ -23,6 +21,7 @@ module SensorMoteM
 		
 		interface Leds;
 		interface Timer as AcquireTimer;
+		//interface Timer as LedsTimer;  //TODO LED TIMER FOR BLINKING YELLOW LED
 	}
 }
 
@@ -110,14 +109,14 @@ implementation
 	}
 	
 	// received command messages
-	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint16_t command_id, uint16_t argument)
+	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint8_t command_id, uint16_t argument)
 	{
 		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
 		{
-			dbg(DBG_USR3, "SensorMote[%d]: received a command package for me!", TOS_LOCAL_ADDRESS);
-			dbg(DBG_USR3, " details: =%d, data=[ %d %d %d %d ]\n", sender_id, command_id, argument);
+			dbg(DBG_USR3, "SensorMote[%d]: received a command package for me! sender_id = %d, command_id = %d, argument = %d\n", 
+				TOS_LOCAL_ADDRESS, sender_id, command_id, argument);
 			
-			switch(argument)
+			switch(command_id)
 			{
 				case CODE_FOUND_MOTE:
 					dbg(DBG_USR3, "SensorMote[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
@@ -131,7 +130,7 @@ implementation
 					dbg(DBG_USR3, "SensorMote[%d]: ALARM ON.\n", TOS_LOCAL_ADDRESS);
 					call Leds.redOn();
 					// alarm on, need to send notifications to night guard and base station
-					call RoutingNetwork.sendCommandMsg(sender_id, CODE_ALARM, TOS_LOCAL_ADDRESS);
+					call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_NIGHT_GUARD, CODE_ALARM, TOS_LOCAL_ADDRESS);
 					call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_ALARM, TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
@@ -155,12 +154,6 @@ implementation
 					dbg(DBG_USR3, "SensorMote[%d]: Unknown command received, ignoring.", TOS_LOCAL_ADDRESS);
 			}
 		}
-		return SUCCESS;
-	}
-	
-	command result_t InternalCommunication.triggerCommand(uint16_t command_id, uint16_t argument)
-	{
-		signal RoutingNetwork.receivedCommandMsg(TOS_LOCAL_ADDRESS, command_id, argument);
 		return SUCCESS;
 	}
 }

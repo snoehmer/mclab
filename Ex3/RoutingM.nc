@@ -12,6 +12,7 @@ module RoutingM
 	{
 		interface StdControl;
 		interface RoutingNetwork;
+		interface InternalCommunication;
 	}
 	uses
 	{
@@ -30,7 +31,8 @@ module RoutingM
 implementation
 {
 	RoutingTableEntry routingtable[MAX_RT_ENTRIES];
-	bool alarmstate = FALSE;
+	bool alarmstate;
+	uint16_t cmd_seq_no;
 	
 	command result_t StdControl.init()
 	{
@@ -45,6 +47,9 @@ implementation
 			routingtable[i].aging = FALSE;
 			routingtable[i].valid = FALSE;
 		}
+		
+		alarmstate = FALSE;
+		cmd_seq_no = 0;
 		
 		return rcombine(call SenderControl.init(), call ReceiverControl.init());
 	}
@@ -231,22 +236,30 @@ implementation
 		}
 	}
 	
-	command result_t RoutingNetwork.sendCommandMsg(uint16_t destination_id, uint16_t command_id, uint16_t argument)
+	command result_t RoutingNetwork.sendCommandMsg(uint16_t destination_id, uint8_t command_id, uint16_t argument)
 	{
-		TOS_Msg new_cmd_msg = call PacketHandler.assembleCommandMessage(destination_id, command_id, argument);
-		uint8_t idx = getKnownBasestation(destination_id);
-		
-		
-		if(idx < MAX_RT_ENTRIES)
+		TOS_Msg new_cmd_msg = call PacketHandler.assembleCommandMessage(destination_id, command_id, argument, cmd_seq_no);
+		if( destination_id == TOS_BCAST_ADDR)
 		{
-			dbg(DBG_USR2, "RoutingM: Sending data package to bs %d over node %d\n", destination_id, routingtable[idx].mote_id);
-			return call MessageSender.sendMessage(new_cmd_msg, routingtable[idx].mote_id);
+			dbg(DBG_USR2, "RoutingM: Sending command package as broadcast, command_id = %d, cmd_seq_no = %d\n", destination_id, command_id, cmd_seq_no);
+			return call MessageSender.sendMessage(new_cmd_msg, TOS_BCAST_ADDR);
 		}
-		else 
+		else
 		{
-			dbg(DBG_USR2, "RoutingM: unknown destination base station %d, cannot send package\n", destination_id);
-			return SUCCESS;
-		}
+			uint8_t idx = getKnownBasestation(destination_id);
+						
+			if(idx < MAX_RT_ENTRIES)
+			{
+				dbg(DBG_USR2, "RoutingM: Sending command package to bs %d over node %d, command_id = %d, cmd_seq_no = %d\n", destination_id, 
+					routingtable[idx].mote_id, command_id, cmd_seq_no);
+				return call MessageSender.sendMessage(new_cmd_msg, routingtable[idx].mote_id);
+			}
+			else 
+			{
+				dbg(DBG_USR2, "RoutingM: unknown destination base station %d, cannot send package\n", destination_id);
+				return SUCCESS;
+			}		
+		}		
 	}
 	
 	command result_t RoutingNetwork.forwardDataMsg(TOS_Msg *nmsg)
@@ -306,7 +319,7 @@ implementation
 					dbg(DBG_USR2, "RoutingM: updated routing table, forwarding broadcast\n");
 					return call RoutingNetwork.forwardBroadcast(&new_msg);
 				}
-				else if(issuer > BASE_STATION_MAX_ADDR && issuer <= NIGHT_GUARD_MAX_ADDR)
+				else if(issuer > BASE_STATION_MAX_ADDR && issuer <= NIGHT_GUARD_MAX_ADDR && TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
 				{
 					dbg(DBG_USR3, "[%d] RoutingM: NightGuard[%d] found me, sending back ack.\n", TOS_LOCAL_ADDRESS, issuer);
 					if(alarmstate)
@@ -362,10 +375,14 @@ implementation
 				
 				signal RoutingNetwork.receivedCommandMsg(call PacketHandler.getSenderID(&new_msg),
 														 call PacketHandler.getCommandID(&new_msg),
-														 call PacketHandler.getArgument(&new_msg));
+														 call PacketHandler.getArgument(&new_msg)
+														 );
 				
-				if(dest == TOS_BCAST_ADDR)
+				if(dest == TOS_BCAST_ADDR && cmd_seq_no < call PacketHandler.getSeqNo(&new_msg))
+				{
+					cmd_seq_no = call PacketHandler.getSeqNo(&new_msg);
 					return call RoutingNetwork.forwardCommandMsg(&new_msg); 
+				}
 				else
 					return SUCCESS;
 			}
@@ -407,6 +424,12 @@ implementation
 			}
 		}
 	
+		return SUCCESS;
+	}
+	
+	command result_t InternalCommunication.triggerCommand(uint16_t command_id, uint16_t argument)
+	{
+		signal RoutingNetwork.receivedCommandMsg(TOS_LOCAL_ADDRESS, command_id, argument);
 		return SUCCESS;
 	}
 }

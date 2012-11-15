@@ -115,6 +115,14 @@ implementation
 		else return 0;
 	}
 	
+	command uint16_t PacketHandler.getSeqNo(TOS_Msg *msg)
+	{	
+		NetworkMsg *message = (NetworkMsg *) msg->data;	
+		if( message->msg_type == MSG_TYPE_COMMAND )
+			return message->cmsg.cmd_seq_no;
+		else return 0;
+	}
+	
 	command void PacketHandler.setBasestationID(TOS_Msg *msg, uint16_t new_basestation_id)
 	{	
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
@@ -193,7 +201,7 @@ implementation
 	}
 	
 	command TOS_Msg PacketHandler.assembleCommandMessage
-		(uint16_t new_destination_id, uint16_t new_command_id, uint16_t new_argument)
+		(uint16_t new_destination_id, uint8_t new_command_id, uint16_t new_argument, uint16_t new_cmd_seq_no)
 	{
 		TOS_Msg new_TOS_message;
 		NetworkMsg *new_network_message = (NetworkMsg*) new_TOS_message.data;
@@ -205,6 +213,7 @@ implementation
 		new_command_message->destination_id = new_destination_id;
 		new_command_message->command_id = new_command_id;
 		new_command_message->argument = new_argument;
+		new_command_message->cmd_seq_no = new_cmd_seq_no;
 		
 		return new_TOS_message;
 	}

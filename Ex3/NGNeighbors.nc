@@ -5,4 +5,5 @@
 interface NGNeighbors
 {
 	command result_t updateNeighborstable(uint16_t mote_id);
+	command bool isKnownMote(uint16_t mote_id);
 }

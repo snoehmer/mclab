@@ -16,6 +16,7 @@ typedef struct CommandMsg
 	uint16_t destination_id;
 	uint8_t command_id;
 	uint16_t argument;
+	uint16_t cmd_seq_no;
 } CommandMsg;
 
 typedef struct SimpleDataMsg

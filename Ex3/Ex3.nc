@@ -27,6 +27,7 @@ implementation {
 	NightGuardM.PacketHandler -> PacketM.PacketHandler;
 	NightGuardM.Leds -> LedsC;
 	NightGuardM.NGNeighbors -> NGNeighborsM.NGNeighbors;
+	NightGuardM.NGNeighborsControl -> NGNeighborsM.StdControl;
 	
 	// sensor node control module
 	SensorMoteM.AcquireTimer -> TimerC.Timer[unique("Timer")];
@@ -58,8 +59,9 @@ implementation {
 	SenseM.ADC -> DemoSensorC;
     SenseM.ADCControl -> DemoSensorC;
     SenseM.Leds -> LedsC;
-    SenseM.InternalCommunication -> SensorMoteM.InternalCommunication;
+    SenseM.InternalCommunication -> RoutingM.InternalCommunication;
     
     // Neighbors management
-    NGNeighborsM.InternalCommunication -> SensorMoteM.InternalCommunication;
+    NGNeighborsM.InternalCommunication -> RoutingM.InternalCommunication; 
+	NGNeighborsM.AgingTimer -> TimerC.Timer[unique("Timer")];
 }

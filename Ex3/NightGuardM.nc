@@ -21,6 +21,7 @@ module NightGuardM
 		interface Leds;
 		interface Timer as BroadcastTimer;
 		
+		interface StdControl as NGNeighborsControl;
 		interface NGNeighbors;
 	}
 }
@@ -37,7 +38,7 @@ implementation
 		{
 			seq_nr = 0;
 			dbg(DBG_USR2, "NightGuard[%d]: initing", TOS_LOCAL_ADDRESS);
-			return rcombine(call Leds.init(), call RoutingControl.init());
+			return rcombine(rcombine(call Leds.init(), call RoutingControl.init()), call NGNeighborsControl.init());
 		}
 		
 		alarm_mode = FALSE;
@@ -54,7 +55,7 @@ implementation
 			call Leds.greenOff();
 			call Leds.redOff();
 			call Leds.yellowOff();
-			return call RoutingControl.start();
+			return rcombine(call RoutingControl.start(), call NGNeighborsControl.start());
 		}
 		
 		return FAIL;
@@ -65,7 +66,7 @@ implementation
 		if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR)
 		{
 			dbg(DBG_USR2, "NightGuard[%d]: stopping", TOS_LOCAL_ADDRESS);
-			return call RoutingControl.stop();
+			return rcombine(call RoutingControl.stop(), call NGNeighborsControl.stop());
 		}
 		
 		return SUCCESS;
@@ -101,23 +102,32 @@ implementation
 	}
 	
 	// received command messages
-	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint16_t command_id, uint16_t argument)
+	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint8_t command_id, uint16_t argument)
 	{
 		if(I_AM_A_NIGHT_GUARD)
 		{
-			dbg(DBG_USR3, "NightGuard[%d]: received a command package for me!", TOS_LOCAL_ADDRESS);
-			dbg(DBG_USR3, " details: =%d, data=[ %d %d %d %d ]\n", sender_id, command_id, argument);
-			
-			switch(argument)
+			dbg(DBG_USR3, "NightGuard[%d]: received a command package for me! sender_id = %d, command_id = %d, argument = %d\n", 
+				TOS_LOCAL_ADDRESS, sender_id, command_id, argument);
+
+			switch(command_id)
 			{
 				case CODE_FOUND_MOTE:
-					dbg(DBG_USR3, "NightGuard[%d]: Found mote[%d], sending command to basestation.\n", TOS_LOCAL_ADDRESS, argument);
-					call NGNeighbors.updateNeighborstable(argument);
-					return call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_FOUND_MOTE, argument);
+					// look up in neighbors table if mote is already there, because if it is, we don't need to send a command to the basestation
+					if(!(call NGNeighbors.isKnownMote(argument)))
+					{
+						dbg(DBG_USR3, "NightGuard[%d]: Found mote[%d], sending command to basestation.\n", TOS_LOCAL_ADDRESS, argument);
+						call NGNeighbors.updateNeighborstable(argument);
+						return call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_FOUND_MOTE, argument);  // TODO how to send to basestation?! direct or via Mote
+					}
+					else
+					{
+						dbg(DBG_USR3, "NightGuard[%d]: Found mote[%d], already know mote, nothing to do.\n", TOS_LOCAL_ADDRESS, argument);
+						return SUCCESS;
+					}
 				break;
 				case CODE_LOST_MOTE:
 					dbg(DBG_USR3, "NightGuard[%d]: Lost mote[%d], sending command to basestation.\n", TOS_LOCAL_ADDRESS, argument);
-					return call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_LOST_MOTE, argument);
+					return call RoutingNetwork.sendCommandMsg(SENSOR_NODE_TARGET_BASE_STATION, CODE_LOST_MOTE, argument);  // TODO how to send to basestation?! direct or via Mote
 				break;
 				case CODE_ALARM:
 					dbg(DBG_USR3, "NightGuard[%d]: mote[%d] reported an ALARM!\n", TOS_LOCAL_ADDRESS, argument);

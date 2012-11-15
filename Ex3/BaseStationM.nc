@@ -80,8 +80,10 @@ implementation
 		{
 			// toogle green LED to tell the user that this is a basestation
 			call Leds.greenToggle();
-			if(seq_nr == TIME_TO_START)
+			if(seq_nr == TIME_TO_START) {
 				call RoutingNetwork.sendCommandMsg(TOS_BCAST_ADDR, CODE_ALARM_SYSTEM_ON, TOS_LOCAL_ADDRESS);
+				dbg(DBG_USR3, "BaseStationM[%d]: Time to start, sending start command.\n", TOS_LOCAL_ADDRESS);
+			}
 			// send a new broadcast packet
 			dbg(DBG_USR3, "BaseStationM[%d]: broadcast timer fired, sending broadcast with seq_nr=%d\n", TOS_LOCAL_ADDRESS, seq_nr);
 			return call RoutingNetwork.issueBroadcast(TOS_LOCAL_ADDRESS, seq_nr++);
@@ -103,13 +105,42 @@ implementation
 	}
 	
 	// received command messages
-	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint16_t command_id, uint16_t argument)
+	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint8_t command_id, uint16_t argument)
 	{
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
-			dbg(DBG_USR3, "Basestation[%d]: received a command package for me!", TOS_LOCAL_ADDRESS);
-			dbg(DBG_USR3, " details: =%d, data=[ %d %d %d %d ]\n", sender_id, command_id, argument);
+			dbg(DBG_USR3, "Basestation[%d]: received a command package for me! sender_id = %d, command_id = %d, argument = %d\n", 
+				TOS_LOCAL_ADDRESS, sender_id, command_id, argument);
 			
+			switch(command_id)
+			{
+				case CODE_FOUND_MOTE:
+					return SUCCESS; // TODO send to PC so data is saved
+				break;
+				case CODE_LOST_MOTE:
+					return SUCCESS; // TODO send to PC so data is saved
+				break;
+				case CODE_ALARM:
+					call Leds.redOn();
+					call RoutingNetwork.sendCommandMsg(BASE_STATION_NIGHT_GUARD_TARGET, CODE_ALARM, TOS_LOCAL_ADDRESS);
+					return SUCCESS; // TODO send to PC so data is saved
+				break;
+				case CODE_ALARM_OFF:
+					call RoutingNetwork.sendCommandMsg(BASE_STATION_NIGHT_GUARD_TARGET, CODE_ALARM_OFF, TOS_LOCAL_ADDRESS);
+					call Leds.redOff();
+					return SUCCESS; // TODO send to PC so data is saved
+				break;
+				case CODE_ALARM_SYSTEM_ON:
+					dbg(DBG_USR3, "Basestation[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					return SUCCESS;
+				break;
+				case CODE_ALARM_SYSTEM_OFF:
+					dbg(DBG_USR3, "Basestation[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					return SUCCESS;
+				break;
+				default:
+					dbg(DBG_USR3, "Basestation[%d]: Unknown command, ignoring.\n", TOS_LOCAL_ADDRESS);
+			}
 		}
 		return SUCCESS;
 	}

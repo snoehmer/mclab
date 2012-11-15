@@ -13,7 +13,8 @@ enum
 
 	// base station configuration
 	BASE_STATION_BROADCAST_RATE = 5000, 	         // send broadcast packets every 5000ms
-	TIME_TO_START = 10,                              // this variable defines when the basestation sends the ON signal
+	BASE_STATION_NIGHT_GUARD_TARGET = BASE_STATION_MAX_ADDR+1, // night guard to send alarm notification
+	TIME_TO_START = 3,                               // this variable defines when the basestation sends the ON signal
 													 // it specifies the number of Broadcasts-Intervalls it should wait
 													 // e.g.: TIME_TO_START = 10 -> 10*
 	
@@ -29,6 +30,7 @@ enum
 	SENSOR_NODE_SELECTIVE_ADDR = 2,			         // address of enabled specific node
 	SENSOR_NODE_DATA_RATE = 120000,	  		         // send sensor data every 120000ms = 2min
 	SENSOR_NODE_TARGET_BASE_STATION = 0,  	         // base station to send sensor data
+	SENSOR_NODE_TARGET_NIGHT_GUARD = BASE_STATION_MAX_ADDR+1, // night guard to send alarm notification
 	SENSOR_MEASUREMENT_PERIOD = 200,                 // peroidicity of measurements
 	SENSOR_TIME_PERIOD_FOR_AVERAGING_IN_MIN = 4,     // which time period of measurements samples should be taken in consideration for average
 	SENSOR_SIZE_SAMPLE_BUFFER = (SENSOR_TIME_PERIOD_FOR_AVERAGING_IN_MIN*60*1000)/SENSOR_MEASUREMENT_PERIOD,  // size of the sample buffer
@@ -46,5 +48,5 @@ enum
 	CODE_ALARM = 3,
 	CODE_ALARM_OFF = 4,
 	CODE_ALARM_SYSTEM_ON = 5,
-	CODE_ALARM_SYSTEM_OFF = 0
+	CODE_ALARM_SYSTEM_OFF = 6
 };

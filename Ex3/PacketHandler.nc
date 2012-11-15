@@ -18,6 +18,7 @@ interface PacketHandler
 	command uint16_t getSenderID(TOS_Msg *msg);
 	command uint16_t getCommandID(TOS_Msg *msg);
 	command uint16_t getArgument(TOS_Msg *msg);
+	command uint16_t getSeqNo(TOS_Msg *msg);
 	command void setBasestationID(TOS_Msg *msg, uint16_t new_basestation_id);
 	command void setSequenceNumber(TOS_Msg *msg, uint16_t new_sequence_number);
 	command void setHopcount(TOS_Msg *msg, uint16_t new_hop_count);
@@ -31,5 +32,5 @@ interface PacketHandler
 	command TOS_Msg assembleDataMessage
 		(uint16_t basestation_id, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4);
 	command TOS_Msg assembleCommandMessage
-		(uint16_t new_destination_id, uint16_t new_command_id, uint16_t new_argument);
+		(uint16_t new_destination_id, uint8_t new_command_id, uint16_t new_argument, uint16_t cmd_seq_no);
 }

@@ -52,6 +52,18 @@ implementation
 		return call AgingTimer.stop();
 	}
 	
+	command bool NGNeighbors.isKnownMote(uint16_t mote_id)
+	{	
+		uint8_t i;
+		
+		for(i = 0; i < MAX_MOTES_NEIGHBORS; i++)
+		{
+			if(neighborstable[i].valid && neighborstable[i].mote_id == mote_id)
+				return TRUE;
+		}
+		
+		return FALSE;
+	}
 	
 	uint8_t getKnownMote(uint16_t mote_id)
 	{	
@@ -111,7 +123,7 @@ implementation
 				else  // found an entry that is no longer alive and hasnt been reactivated since last check
 				{
 					// this entry is old, remove it from routing table
-					dbg(DBG_USR2, "NeighborsM: aging timer found an old entry, deleting! (mote_id=%d)\n", neighborstable[i].mote_id);
+					dbg(DBG_USR3, "NeighborsM: aging timer found an old entry, deleting! (mote_id=%d)\n", neighborstable[i].mote_id);
 					
 					if(I_AM_A_NIGHT_GUARD)
 						call InternalCommunication.triggerCommand(CODE_LOST_MOTE, neighborstable[i].mote_id);
