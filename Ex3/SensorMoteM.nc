@@ -42,9 +42,9 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
 		{
-			call Leds.greenOff();
-			call Leds.redOff();
-			call Leds.yellowOff();
+			call Leds.greenOff();  // I am a sensor node
+			call Leds.redOff();	   // no alarm active at the moment
+			call Leds.yellowOff(); // alarm system not active at the moment
 			
 			dbg(DBG_USR2, "SensorMoteM[%d]: starting", TOS_LOCAL_ADDRESS);
 			
@@ -125,11 +125,11 @@ implementation
 			switch(command_id)
 			{
 				case CODE_FOUND_MOTE:
-					dbg(DBG_USR3, "SensorMote[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "SensorMote[%d]: found mote - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
 				case CODE_LOST_MOTE:
-					dbg(DBG_USR3, "SensorMote[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "SensorMote[%d]: lost mote - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
 				case CODE_ALARM:

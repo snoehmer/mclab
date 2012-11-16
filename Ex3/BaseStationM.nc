@@ -43,9 +43,9 @@ implementation
 	{		
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
-			call Leds.greenOn();
-			call Leds.redOff();
-			call Leds.yellowOff();
+			call Leds.greenOn();  // we are a base station
+			call Leds.redOff();   // no alarm is detected
+			call Leds.yellowOff(); // status display disabled
 			
 			dbg(DBG_USR2, "BaseStationM[%d]: starting", TOS_LOCAL_ADDRESS);
 			
@@ -121,25 +121,25 @@ implementation
 					return SUCCESS; // TODO send to PC so data is saved
 				break;
 				case CODE_ALARM:
-					call Leds.redOn();
+					call Leds.redOn();  // active alarm detected!
 					call RoutingNetwork.sendCommandMsg(BASE_STATION_NIGHT_GUARD_TARGET, CODE_ALARM, TOS_LOCAL_ADDRESS);
 					return SUCCESS; // TODO send to PC so data is saved
 				break;
 				case CODE_ALARM_OFF:
 					call RoutingNetwork.sendCommandMsg(BASE_STATION_NIGHT_GUARD_TARGET, CODE_ALARM_OFF, TOS_LOCAL_ADDRESS);
-					call Leds.redOff();
+					call Leds.redOff();  // end of active alarm
 					return SUCCESS; // TODO send to PC so data is saved
 				break;
 				case CODE_ALARM_SYSTEM_ON:
-					dbg(DBG_USR3, "Basestation[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "Basestation[%d]: Alarm on - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
 				case CODE_ALARM_SYSTEM_OFF:
-					dbg(DBG_USR3, "Basestation[%d]: This command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "Basestation[%d]: Alarm off - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
 				default:
-					dbg(DBG_USR3, "Basestation[%d]: Unknown command, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "Basestation[%d]: Unknown command %d, ignoring.\n", TOS_LOCAL_ADDRESS, command_id);
 			}
 		}
 		return SUCCESS;

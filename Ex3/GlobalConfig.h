@@ -26,7 +26,7 @@ enum
 
 	// sensor node configuration
 	SENSOR_NODE_MESSAGES_ENABLED = 1,		         // enable or disable the sending of sensor node data to the base station
-	SENSOR_NODE_SELECTIVE_ENABLED = 1,		         // enable only a specific sensor node
+	SENSOR_NODE_SELECTIVE_ENABLED = 0,		         // enable only a specific sensor node
 	SENSOR_NODE_SELECTIVE_ADDR = 2,			         // address of enabled specific node
 	SENSOR_NODE_DATA_RATE = 120000,	  		         // send sensor data every 120000ms = 2min
 	SENSOR_NODE_TARGET_BASE_STATION = 0,  	         // base station to send sensor data

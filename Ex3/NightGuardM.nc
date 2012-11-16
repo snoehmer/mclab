@@ -38,7 +38,7 @@ implementation
 		{
 			seq_nr = 0;
 			dbg(DBG_USR2, "NightGuard[%d]: initing", TOS_LOCAL_ADDRESS);
-			return rcombine(rcombine(call Leds.init(), call RoutingControl.init()), call NGNeighborsControl.init());
+			return rcombine3(call Leds.init(), call RoutingControl.init(), call NGNeighborsControl.init());
 		}
 		
 		alarm_mode = FALSE;
@@ -52,9 +52,9 @@ implementation
 		{
 			dbg(DBG_USR2, "NightGuard[%d]: starting", TOS_LOCAL_ADDRESS);
 			
-			call Leds.greenOff();
-			call Leds.redOff();
-			call Leds.yellowOff();
+			call Leds.greenOff();  // we are a night guard (toggle green LED)
+			call Leds.redOff();    // no alarm detected
+			call Leds.yellowOff(); // alarm system not active yet
 			return rcombine(call RoutingControl.start(), call NGNeighborsControl.start());
 		}
 		
@@ -76,8 +76,12 @@ implementation
 	// periodically send new broadcast messages
 	event result_t BroadcastTimer.fired()
 	{
+		call Leds.greenToggle();	// toggle green LED so signal I am a night guard
+		
 		if(alarm_mode)
-			call Leds.redToggle();
+			call Leds.redToggle();  // toggle red LED when alarm is detected
+		else
+			call Leds.redOff();		// turn off red LED when alarm has ended
 			
 		if(TOS_LOCAL_ADDRESS > BASE_STATION_MAX_ADDR && TOS_LOCAL_ADDRESS <= NIGHT_GUARD_MAX_ADDR)
 		{		
@@ -139,7 +143,7 @@ implementation
 				break;
 				case CODE_ALARM_SYSTEM_ON:
 					dbg(DBG_USR3, "NightGuard[%d]: Alarm-system turned ON by basestation[%d].", TOS_LOCAL_ADDRESS, argument);
-					call Leds.greenOn();
+					call Leds.yellowOn();
 					// send hello broadcast on startup
 					if(call RoutingNetwork.issueBroadcast(TOS_LOCAL_ADDRESS, seq_nr++))
 						if(call BroadcastTimer.start(TIMER_REPEAT, NIGHT_GUARD_BROADCAST_RATE))
@@ -147,6 +151,7 @@ implementation
 				break;
 				case CODE_ALARM_SYSTEM_OFF:
 					dbg(DBG_USR3, "NightGuard[%d]: Alarm-system turned OFF by basestation[%d].", TOS_LOCAL_ADDRESS, argument);
+					call Leds.yellowOff();
 					return call BroadcastTimer.stop();
 				break;
 				default:

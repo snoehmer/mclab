@@ -3,7 +3,9 @@ includes MessageTypes;
 configuration Ex3 {
 }
 implementation {
-	components Main, Ex3M, BaseStationM, NightGuardM, SensorMoteM, ReceiverM, SenderM, PacketM, RoutingM, GenericComm, LedsC, TimerC, SenseM, NGNeighborsM, DemoSensorC;
+	components Main, Ex3M, BaseStationM, NightGuardM, SensorMoteM, ReceiverM,
+	SenderM, PacketM, RoutingM, GenericComm, LedsC, TimerC, SenseM, NGNeighborsM,
+	DemoSensorC;
 	
 	// main controls
 	Main.StdControl -> Ex3M.StdControl;
