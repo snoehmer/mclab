@@ -125,11 +125,11 @@ implementation
 			switch(command_id)
 			{
 				case CODE_FOUND_MOTE:
-					dbg(DBG_USR3, "SensorMote[%d]: found mote - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "SensorMote[%d]: found mote received - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
 				case CODE_LOST_MOTE:
-					dbg(DBG_USR3, "SensorMote[%d]: lost mote - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "SensorMote[%d]: lost mote received - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
 				case CODE_ALARM:

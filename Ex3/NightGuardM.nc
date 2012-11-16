@@ -96,7 +96,7 @@ implementation
 	// received a data message, ignoring
 	event result_t RoutingNetwork.receivedDataMsg(uint16_t src, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
 	{
-		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
+		if(I_AM_A_NIGHT_GUARD)
 		{		
 			dbg(DBG_USR3, "NightGuard[%d]: aha, I received a data package addressed to me. ignoring.", TOS_LOCAL_ADDRESS);
 			dbg(DBG_USR3, " details: src=%d, data=[%d %d %d %d]\n", src, data1, data2, data3, data4);
@@ -135,10 +135,12 @@ implementation
 				break;
 				case CODE_ALARM:
 					dbg(DBG_USR3, "NightGuard[%d]: mote[%d] reported an ALARM!\n", TOS_LOCAL_ADDRESS, argument);
+					alarm_mode = TRUE;
 					return call Leds.redOn();
 				break;
 				case CODE_ALARM_OFF:
 					dbg(DBG_USR3, "NightGuard[%d]: mote[%d] turned alarm off.\n", TOS_LOCAL_ADDRESS, argument);
+					alarm_mode = FALSE;
 					return call Leds.redOff();
 				break;
 				case CODE_ALARM_SYSTEM_ON:

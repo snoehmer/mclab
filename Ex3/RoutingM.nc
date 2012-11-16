@@ -364,7 +364,7 @@ implementation
 				
 				return SUCCESS;
 			}
-			else  // I am not the destination, process the data message
+			else  // I am not the destination, forward the data message
 			{
 				dbg(DBG_USR2, "RoutingM: received data package not for me, trying to forward\n");
 				
@@ -392,7 +392,7 @@ implementation
 				else
 					return SUCCESS;
 			}
-			else  // I am not the destination, process the command message
+			else  // I am not the destination, forward the command message
 			{
 				dbg(DBG_USR2, "RoutingM: received command package not for me, trying to forward\n");
 				

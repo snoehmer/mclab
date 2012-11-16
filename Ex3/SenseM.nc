@@ -97,11 +97,13 @@ implementation {
   	
   	mean = sum / SENSOR_SIZE_SAMPLE_BUFFER;
  
- 	dbg(DBG_USR3, "SensorMote[%d] - SenseM: new mean is %d (SENSOR_ALARM_THRESHOLD is %d)\n", TOS_LOCAL_ADDRESS, mean, SENSOR_ALARM_THRESHOLD);
+ 	dbg(DBG_USR1, "SensorMote[%d] - SenseM: new calc'd mean is %d\n", TOS_LOCAL_ADDRESS, mean);
   }
     
   command uint16_t Sense.getMean()
   {
+  	dbg(DBG_USR3, "SensorMote[%d] - SenseM: current mean is %d (SENSOR_ALARM_THRESHOLD is %d)\n", TOS_LOCAL_ADDRESS, mean, SENSOR_ALARM_THRESHOLD);
+  
   	//post calcMean();
   	return mean;
   }

@@ -78,8 +78,6 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
-			// toogle green LED to tell the user that this is a basestation
-			call Leds.greenToggle();
 			if(seq_nr == TIME_TO_START) {
 				call RoutingNetwork.sendCommandMsg(TOS_BCAST_ADDR, CODE_ALARM_SYSTEM_ON, TOS_LOCAL_ADDRESS);
 				dbg(DBG_USR3, "BaseStationM[%d]: Time to start, sending start command.\n", TOS_LOCAL_ADDRESS);
@@ -131,11 +129,11 @@ implementation
 					return SUCCESS; // TODO send to PC so data is saved
 				break;
 				case CODE_ALARM_SYSTEM_ON:
-					dbg(DBG_USR3, "Basestation[%d]: Alarm on - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "Basestation[%d]: Alarm on received - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
 				case CODE_ALARM_SYSTEM_OFF:
-					dbg(DBG_USR3, "Basestation[%d]: Alarm off - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "Basestation[%d]: Alarm off received - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
 				default:
