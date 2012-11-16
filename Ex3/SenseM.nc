@@ -125,7 +125,10 @@ implementation {
   	}
  
  	if(data > SENSOR_ALARM_THRESHOLD)
- 	  call InternalCommunication.triggerCommand(CODE_ALARM, data); 
+ 	{
+ 		dbg(DBG_USR3, "SensorMote[%d] - SenseM: current value is %d -> ALARM!\n", TOS_LOCAL_ADDRESS, data);
+ 	  	call InternalCommunication.triggerCommand(CODE_ALARM, data);
+ 	}
   	
   	dbg(DBG_USR1, "SensorMote[%d]: got ADC data %d\n", TOS_LOCAL_ADDRESS, data);
   	
