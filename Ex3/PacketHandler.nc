@@ -6,7 +6,7 @@ includes AM;
 
 interface PacketHandler
 {
-	command uint8_t getMsgType(TOS_Msg *msg);
+	command uint16_t getMsgType(TOS_Msg *msg);
 	command uint16_t getBasestationID(TOS_Msg *msg);
 	command uint16_t getSequenceNumber(TOS_Msg *msg);
 	command uint16_t getHopcount(TOS_Msg *msg);
@@ -32,5 +32,5 @@ interface PacketHandler
 	command TOS_Msg assembleDataMessage
 		(uint16_t basestation_id, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4);
 	command TOS_Msg assembleCommandMessage
-		(uint16_t new_destination_id, uint8_t new_command_id, uint16_t new_argument, uint16_t cmd_seq_no);
+		(uint16_t new_destination_id, uint16_t new_command_id, uint16_t new_argument, uint16_t cmd_seq_no);
 }

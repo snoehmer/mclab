@@ -106,7 +106,7 @@ implementation
 	}
 	
 	// received command messages
-	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint8_t command_id, uint16_t argument)
+	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint16_t command_id, uint16_t argument)
 	{
 		if(I_AM_A_NIGHT_GUARD)
 		{

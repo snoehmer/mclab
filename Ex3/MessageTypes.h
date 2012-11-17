@@ -14,7 +14,7 @@ typedef struct CommandMsg
 {
 	uint16_t sender_id;
 	uint16_t destination_id;
-	uint8_t command_id;
+	uint16_t command_id;
 	uint16_t argument;
 	uint16_t cmd_seq_no;
 } CommandMsg;
@@ -31,7 +31,7 @@ typedef struct SimpleDataMsg
 
 typedef struct NetworkMsg
 {
-	uint8_t msg_type;
+	uint16_t msg_type;
 	
 	union
 	{

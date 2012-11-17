@@ -4,17 +4,15 @@
  * message type.
  */
 
-//package net.zeuch.Ex3Ctrl;
-
 public class NetworkMsg extends net.tinyos.message.Message {
 
     /** The default size of this message type in bytes. */
-    public static final int DEFAULT_MESSAGE_SIZE = 10;
+    public static final int DEFAULT_MESSAGE_SIZE = 12;
 
     /** The Active Message type associated with this message. */
     public static final int AM_TYPE = 5;
 
-    /** Create a new NetworkMsg of size 10. */
+    /** Create a new NetworkMsg of size 12. */
     public NetworkMsg() {
         super(DEFAULT_MESSAGE_SIZE);
         amTypeSet(AM_TYPE);
@@ -141,9 +139,9 @@ public class NetworkMsg extends net.tinyos.message.Message {
 
     /////////////////////////////////////////////////////////
     // Accessor methods for field: msg_type
-    //   Field type: short
+    //   Field type: int
     //   Offset (bits): 0
-    //   Size (bits): 8
+    //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
     /**
@@ -175,37 +173,37 @@ public class NetworkMsg extends net.tinyos.message.Message {
     }
 
     /**
-     * Return the value (as a short) of the field 'msg_type'
+     * Return the value (as a int) of the field 'msg_type'
      */
-    public short get_msg_type() {
-        return (short)getUIntElement(offsetBits_msg_type(), 8);
+    public int get_msg_type() {
+        return (int)getUIntElement(offsetBits_msg_type(), 16);
     }
 
     /**
      * Set the value of the field 'msg_type'
      */
-    public void set_msg_type(short value) {
-        setUIntElement(offsetBits_msg_type(), 8, value);
+    public void set_msg_type(int value) {
+        setUIntElement(offsetBits_msg_type(), 16, value);
     }
 
     /**
      * Return the size, in bytes, of the field 'msg_type'
      */
     public static int size_msg_type() {
-        return (8 / 8);
+        return (16 / 8);
     }
 
     /**
      * Return the size, in bits, of the field 'msg_type'
      */
     public static int sizeBits_msg_type() {
-        return 8;
+        return 16;
     }
 
     /////////////////////////////////////////////////////////
     // Accessor methods for field: bmsg.basestation_id
     //   Field type: int
-    //   Offset (bits): 8
+    //   Offset (bits): 16
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -227,14 +225,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'bmsg.basestation_id'
      */
     public static int offset_bmsg_basestation_id() {
-        return (8 / 8);
+        return (16 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'bmsg.basestation_id'
      */
     public static int offsetBits_bmsg_basestation_id() {
-        return 8;
+        return 16;
     }
 
     /**
@@ -268,7 +266,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: bmsg.seq_nr
     //   Field type: int
-    //   Offset (bits): 24
+    //   Offset (bits): 32
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -290,14 +288,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'bmsg.seq_nr'
      */
     public static int offset_bmsg_seq_nr() {
-        return (24 / 8);
+        return (32 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'bmsg.seq_nr'
      */
     public static int offsetBits_bmsg_seq_nr() {
-        return 24;
+        return 32;
     }
 
     /**
@@ -331,7 +329,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: bmsg.hop_count
     //   Field type: int
-    //   Offset (bits): 40
+    //   Offset (bits): 48
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -353,14 +351,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'bmsg.hop_count'
      */
     public static int offset_bmsg_hop_count() {
-        return (40 / 8);
+        return (48 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'bmsg.hop_count'
      */
     public static int offsetBits_bmsg_hop_count() {
-        return 40;
+        return 48;
     }
 
     /**
@@ -394,7 +392,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: bmsg.parent_addr
     //   Field type: int
-    //   Offset (bits): 56
+    //   Offset (bits): 64
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -416,14 +414,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'bmsg.parent_addr'
      */
     public static int offset_bmsg_parent_addr() {
-        return (56 / 8);
+        return (64 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'bmsg.parent_addr'
      */
     public static int offsetBits_bmsg_parent_addr() {
-        return 56;
+        return 64;
     }
 
     /**
@@ -457,7 +455,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: dmsg.basestation_id
     //   Field type: int
-    //   Offset (bits): 8
+    //   Offset (bits): 16
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -479,14 +477,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'dmsg.basestation_id'
      */
     public static int offset_dmsg_basestation_id() {
-        return (8 / 8);
+        return (16 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'dmsg.basestation_id'
      */
     public static int offsetBits_dmsg_basestation_id() {
-        return 8;
+        return 16;
     }
 
     /**
@@ -520,7 +518,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: dmsg.src_addr
     //   Field type: int
-    //   Offset (bits): 24
+    //   Offset (bits): 32
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -542,14 +540,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'dmsg.src_addr'
      */
     public static int offset_dmsg_src_addr() {
-        return (24 / 8);
+        return (32 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'dmsg.src_addr'
      */
     public static int offsetBits_dmsg_src_addr() {
-        return 24;
+        return 32;
     }
 
     /**
@@ -583,7 +581,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: dmsg.data1
     //   Field type: short
-    //   Offset (bits): 40
+    //   Offset (bits): 48
     //   Size (bits): 8
     /////////////////////////////////////////////////////////
 
@@ -605,14 +603,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'dmsg.data1'
      */
     public static int offset_dmsg_data1() {
-        return (40 / 8);
+        return (48 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'dmsg.data1'
      */
     public static int offsetBits_dmsg_data1() {
-        return 40;
+        return 48;
     }
 
     /**
@@ -646,7 +644,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: dmsg.data2
     //   Field type: short
-    //   Offset (bits): 48
+    //   Offset (bits): 56
     //   Size (bits): 8
     /////////////////////////////////////////////////////////
 
@@ -668,14 +666,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'dmsg.data2'
      */
     public static int offset_dmsg_data2() {
-        return (48 / 8);
+        return (56 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'dmsg.data2'
      */
     public static int offsetBits_dmsg_data2() {
-        return 48;
+        return 56;
     }
 
     /**
@@ -709,7 +707,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: dmsg.data3
     //   Field type: short
-    //   Offset (bits): 56
+    //   Offset (bits): 64
     //   Size (bits): 8
     /////////////////////////////////////////////////////////
 
@@ -731,14 +729,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'dmsg.data3'
      */
     public static int offset_dmsg_data3() {
-        return (56 / 8);
+        return (64 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'dmsg.data3'
      */
     public static int offsetBits_dmsg_data3() {
-        return 56;
+        return 64;
     }
 
     /**
@@ -772,7 +770,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: dmsg.data4
     //   Field type: short
-    //   Offset (bits): 64
+    //   Offset (bits): 72
     //   Size (bits): 8
     /////////////////////////////////////////////////////////
 
@@ -794,14 +792,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'dmsg.data4'
      */
     public static int offset_dmsg_data4() {
-        return (64 / 8);
+        return (72 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'dmsg.data4'
      */
     public static int offsetBits_dmsg_data4() {
-        return 64;
+        return 72;
     }
 
     /**
@@ -835,7 +833,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: cmsg.sender_id
     //   Field type: int
-    //   Offset (bits): 8
+    //   Offset (bits): 16
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -857,14 +855,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'cmsg.sender_id'
      */
     public static int offset_cmsg_sender_id() {
-        return (8 / 8);
+        return (16 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'cmsg.sender_id'
      */
     public static int offsetBits_cmsg_sender_id() {
-        return 8;
+        return 16;
     }
 
     /**
@@ -898,7 +896,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: cmsg.destination_id
     //   Field type: int
-    //   Offset (bits): 24
+    //   Offset (bits): 32
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -920,14 +918,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'cmsg.destination_id'
      */
     public static int offset_cmsg_destination_id() {
-        return (24 / 8);
+        return (32 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'cmsg.destination_id'
      */
     public static int offsetBits_cmsg_destination_id() {
-        return 24;
+        return 32;
     }
 
     /**
@@ -960,9 +958,9 @@ public class NetworkMsg extends net.tinyos.message.Message {
 
     /////////////////////////////////////////////////////////
     // Accessor methods for field: cmsg.command_id
-    //   Field type: short
-    //   Offset (bits): 40
-    //   Size (bits): 8
+    //   Field type: int
+    //   Offset (bits): 48
+    //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
     /**
@@ -983,48 +981,48 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'cmsg.command_id'
      */
     public static int offset_cmsg_command_id() {
-        return (40 / 8);
+        return (48 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'cmsg.command_id'
      */
     public static int offsetBits_cmsg_command_id() {
-        return 40;
+        return 48;
     }
 
     /**
-     * Return the value (as a short) of the field 'cmsg.command_id'
+     * Return the value (as a int) of the field 'cmsg.command_id'
      */
-    public short get_cmsg_command_id() {
-        return (short)getUIntElement(offsetBits_cmsg_command_id(), 8);
+    public int get_cmsg_command_id() {
+        return (int)getUIntElement(offsetBits_cmsg_command_id(), 16);
     }
 
     /**
      * Set the value of the field 'cmsg.command_id'
      */
-    public void set_cmsg_command_id(short value) {
-        setUIntElement(offsetBits_cmsg_command_id(), 8, value);
+    public void set_cmsg_command_id(int value) {
+        setUIntElement(offsetBits_cmsg_command_id(), 16, value);
     }
 
     /**
      * Return the size, in bytes, of the field 'cmsg.command_id'
      */
     public static int size_cmsg_command_id() {
-        return (8 / 8);
+        return (16 / 8);
     }
 
     /**
      * Return the size, in bits, of the field 'cmsg.command_id'
      */
     public static int sizeBits_cmsg_command_id() {
-        return 8;
+        return 16;
     }
 
     /////////////////////////////////////////////////////////
     // Accessor methods for field: cmsg.argument
     //   Field type: int
-    //   Offset (bits): 48
+    //   Offset (bits): 64
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -1046,14 +1044,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'cmsg.argument'
      */
     public static int offset_cmsg_argument() {
-        return (48 / 8);
+        return (64 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'cmsg.argument'
      */
     public static int offsetBits_cmsg_argument() {
-        return 48;
+        return 64;
     }
 
     /**
@@ -1087,7 +1085,7 @@ public class NetworkMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: cmsg.cmd_seq_no
     //   Field type: int
-    //   Offset (bits): 64
+    //   Offset (bits): 80
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -1109,14 +1107,14 @@ public class NetworkMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'cmsg.cmd_seq_no'
      */
     public static int offset_cmsg_cmd_seq_no() {
-        return (64 / 8);
+        return (80 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'cmsg.cmd_seq_no'
      */
     public static int offsetBits_cmsg_cmd_seq_no() {
-        return 64;
+        return 80;
     }
 
     /**

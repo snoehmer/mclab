@@ -245,7 +245,7 @@ implementation
 		}
 	}
 	
-	command result_t RoutingNetwork.sendCommandMsg(uint16_t destination_id, uint8_t command_id, uint16_t argument)
+	command result_t RoutingNetwork.sendCommandMsg(uint16_t destination_id, uint16_t command_id, uint16_t argument)
 	{
 		TOS_Msg new_cmd_msg = call PacketHandler.assembleCommandMessage(destination_id, command_id, argument, cmd_seq_no);
 		

@@ -31,8 +31,8 @@ public class Ex3Ctrl
 				}
 				else if(inStr.equals("exit") || inStr.equals("quit"))
 				{
-					System.out.println("[  GOOD BYE  ] leaving this awesome program - so long, and thanks for alle the fish!");
-					break;
+					System.out.println("[  GOOD BYE  ] leaving this awesome program - so long, and thanks for all the fish!");
+					System.exit(0);
 				}
 			}
 			catch(Exception e)

@@ -78,10 +78,13 @@ implementation
 	{
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
+			/*
 			if(seq_nr == TIME_TO_START) {
 				call RoutingNetwork.sendCommandMsg(TOS_BCAST_ADDR, CODE_ALARM_SYSTEM_ON, TOS_LOCAL_ADDRESS);
 				dbg(DBG_USR3, "BaseStationM[%d]: Time to start, sending start command.\n", TOS_LOCAL_ADDRESS);
 			}
+			*/
+			
 			// send a new broadcast packet
 			dbg(DBG_USR3, "BaseStationM[%d]: broadcast timer fired, sending broadcast with seq_nr=%d\n", TOS_LOCAL_ADDRESS, seq_nr);
 			return call RoutingNetwork.issueBroadcast(TOS_LOCAL_ADDRESS, seq_nr++);
@@ -106,7 +109,7 @@ implementation
 	}
 	
 	// received command messages
-	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint8_t command_id, uint16_t argument)
+	event result_t RoutingNetwork.receivedCommandMsg(uint16_t sender_id, uint16_t command_id, uint16_t argument)
 	{
 		if(TOS_LOCAL_ADDRESS <= BASE_STATION_MAX_ADDR)
 		{
@@ -151,13 +154,15 @@ implementation
 				break;
 				
 				case CODE_ALARM_SYSTEM_ON:
-					dbg(DBG_USR3, "Basestation[%d]: Alarm on received - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
-					return SUCCESS;
+					dbg(DBG_USR3, "Basestation[%d]: Alarm on received, activating alarm system.\n", TOS_LOCAL_ADDRESS);
+					call RoutingNetwork.sendCommandMsg(TOS_UART_ADDR, CODE_ALARM_SYSTEM_ON, TOS_LOCAL_ADDRESS);
+					return call RoutingNetwork.sendCommandMsg(TOS_BCAST_ADDR, CODE_ALARM_SYSTEM_ON, TOS_LOCAL_ADDRESS);
 				break;
 				
 				case CODE_ALARM_SYSTEM_OFF:
-					dbg(DBG_USR3, "Basestation[%d]: Alarm off received - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
-					return SUCCESS;
+					dbg(DBG_USR3, "Basestation[%d]: Alarm off received, deactivating alarm system.\n", TOS_LOCAL_ADDRESS);
+					call RoutingNetwork.sendCommandMsg(TOS_UART_ADDR, CODE_ALARM_SYSTEM_OFF, TOS_LOCAL_ADDRESS);
+					return call RoutingNetwork.sendCommandMsg(TOS_BCAST_ADDR, CODE_ALARM_SYSTEM_OFF, TOS_LOCAL_ADDRESS);
 				break;
 				
 				default:

@@ -13,20 +13,20 @@ public class WSNComm implements MessageListener
 	MoteIF mote_;	
 	public static final int GROUP_ID = 125;	 // TOS_DEFAULT_AM_GROUP = 0x7d
 	
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 	
 	// message types
-	public static final short MSG_TYPE_BCAST = 1;
-	public static final short MSG_TYPE_DATA = 2;
-	public static final short MSG_TYPE_COMMAND = 3;
+	public static final int MSG_TYPE_BCAST = 1;
+	public static final int MSG_TYPE_DATA = 2;
+	public static final int MSG_TYPE_COMMAND = 3;
 	
 	// command codes
-	public static final short CODE_FOUND_MOTE = 1;
-	public static final short CODE_LOST_MOTE = 2;
-	public static final short CODE_ALARM = 3;
-	public static final short CODE_ALARM_OFF = 4;
-	public static final short CODE_ALARM_SYSTEM_ON = 5;
-	public static final short CODE_ALARM_SYSTEM_OFF = 6;
+	public static final int CODE_FOUND_MOTE = 1;
+	public static final int CODE_LOST_MOTE = 2;
+	public static final int CODE_ALARM = 3;
+	public static final int CODE_ALARM_OFF = 4;
+	public static final int CODE_ALARM_SYSTEM_ON = 5;
+	public static final int CODE_ALARM_SYSTEM_OFF = 6;
 	
 	// target base station address
 	public static final int TARGET_BASESTATION_ID = 0;
@@ -51,6 +51,7 @@ public class WSNComm implements MessageListener
 		if(msg instanceof NetworkMsg)
 		{
 			NetworkMsg nmsg = (NetworkMsg) msg;
+			//System.out.println("[MESSAGE DUMP] " + msg.toString());
 			
 			switch(nmsg.get_msg_type())
 			{
@@ -105,19 +106,19 @@ public class WSNComm implements MessageListener
 				break;
 				
 			case CODE_ALARM_SYSTEM_OFF:
-				System.out.println("[SYSTEM CTRL ] aha... got system off from " + sender_id + ", ignoring");
+				System.out.println("[SYSTEM CTRL ] alarm system disabled from base station " + sender_id);
 				break;
 				
 			case CODE_ALARM_SYSTEM_ON:
-				System.out.println("[SYSTEM CTRL ] aha... got system on from " + sender_id + ", ignoring");
+				System.out.println("[SYSTEM CTRL ] alarm system enabled from base station " + sender_id);
 				break;
 				
 			case CODE_FOUND_MOTE:
-				System.out.println("[NIGHT GUARD ] guard found mote " + sender_id);
+				System.out.println("[NIGHT GUARD ] guard found mote " + argument);
 				break;
 				
 			case CODE_LOST_MOTE:
-				System.out.println("[NIGHT GUARD ] guard lost mote " + sender_id);
+				System.out.println("[NIGHT GUARD ] guard lost mote " + argument);
 				break;
 				
 			default:
@@ -152,7 +153,7 @@ public class WSNComm implements MessageListener
 	}
 	
 	// sends a command packet to a destination
-	public void sendCommand(int dest_id, short command_id, int argument)
+	public void sendCommand(int dest_id, int command_id, int argument)
 	{
 		NetworkMsg nmsg = new NetworkMsg();
 		

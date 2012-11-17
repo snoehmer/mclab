@@ -14,7 +14,7 @@ module PacketM
 
 implementation
 {
-	command uint8_t PacketHandler.getMsgType(TOS_Msg *msg)
+	command uint16_t PacketHandler.getMsgType(TOS_Msg *msg)
 	{
 		NetworkMsg *message = (NetworkMsg *) msg->data;	
 		return message->msg_type;
@@ -201,7 +201,7 @@ implementation
 	}
 	
 	command TOS_Msg PacketHandler.assembleCommandMessage
-		(uint16_t new_destination_id, uint8_t new_command_id, uint16_t new_argument, uint16_t new_cmd_seq_no)
+		(uint16_t new_destination_id, uint16_t new_command_id, uint16_t new_argument, uint16_t new_cmd_seq_no)
 	{
 		TOS_Msg new_TOS_message;
 		NetworkMsg *new_network_message = (NetworkMsg*) new_TOS_message.data;
