@@ -97,6 +97,9 @@ implementation
 		{		
 			dbg(DBG_USR3, "BaseStationM[%d]: received a data package for me!", TOS_LOCAL_ADDRESS);
 			dbg(DBG_USR3, " details: src=%d, data=[ %d %d %d %d ]\n", src, data1, data2, data3, data4);
+			
+			// forward data package to PC
+			call RoutingNetwork.sendDataMsg(TOS_UART_ADDR, data1, data2, data3, data4);
 		}
 		
 		return SUCCESS;
@@ -113,29 +116,50 @@ implementation
 			switch(command_id)
 			{
 				case CODE_FOUND_MOTE:
-					return SUCCESS; // TODO send to PC so data is saved
+					// night guard found mote, forward message to PC
+					dbg(DBG_USR3, "Basestation[%d]: guard[%d] found mote[%d].\n", TOS_LOCAL_ADDRESS, sender_id, argument);
+					return call RoutingNetwork.sendCommandMsg(TOS_UART_ADDR, CODE_FOUND_MOTE, argument);
 				break;
+				
 				case CODE_LOST_MOTE:
-					return SUCCESS; // TODO send to PC so data is saved
+					// night guard lost mote, forward message to PC
+					dbg(DBG_USR3, "Basestation[%d]: guard[%d] lost mote[%d].\n", TOS_LOCAL_ADDRESS, sender_id, argument);
+					return call RoutingNetwork.sendCommandMsg(TOS_UART_ADDR, CODE_LOST_MOTE, argument);
+					return SUCCESS;
 				break;
+				
 				case CODE_ALARM:
+					dbg(DBG_USR3, "Basestation[%d]: mote[%d] activated an ALARM!\n", TOS_LOCAL_ADDRESS, sender_id);
 					call Leds.redOn();  // active alarm detected!
+					
+					// tell the night guard about the active alarm
 					call RoutingNetwork.sendCommandMsg(BASE_STATION_NIGHT_GUARD_TARGET, CODE_ALARM, TOS_LOCAL_ADDRESS);
-					return SUCCESS; // TODO send to PC so data is saved
+					
+					// forward the message to the PC
+					return call RoutingNetwork.sendCommandMsg(TOS_UART_ADDR, CODE_ALARM, argument);
 				break;
+				
 				case CODE_ALARM_OFF:
-					call RoutingNetwork.sendCommandMsg(BASE_STATION_NIGHT_GUARD_TARGET, CODE_ALARM_OFF, TOS_LOCAL_ADDRESS);
+					dbg(DBG_USR3, "Basestation[%d]: mote[%d] deactivated the alarm.\n", TOS_LOCAL_ADDRESS, sender_id);
 					call Leds.redOff();  // end of active alarm
-					return SUCCESS; // TODO send to PC so data is saved
+					
+					// tell the night guard about the end of the active alarm
+					call RoutingNetwork.sendCommandMsg(BASE_STATION_NIGHT_GUARD_TARGET, CODE_ALARM_OFF, TOS_LOCAL_ADDRESS);
+					
+					// forward the message to the PC
+					return call RoutingNetwork.sendCommandMsg(TOS_UART_ADDR, CODE_ALARM_OFF, argument);
 				break;
+				
 				case CODE_ALARM_SYSTEM_ON:
 					dbg(DBG_USR3, "Basestation[%d]: Alarm on received - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
+				
 				case CODE_ALARM_SYSTEM_OFF:
 					dbg(DBG_USR3, "Basestation[%d]: Alarm off received - this command is not relevant, ignoring.\n", TOS_LOCAL_ADDRESS);
 					return SUCCESS;
 				break;
+				
 				default:
 					dbg(DBG_USR3, "Basestation[%d]: Unknown command %d, ignoring.\n", TOS_LOCAL_ADDRESS, command_id);
 			}

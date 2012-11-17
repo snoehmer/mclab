@@ -221,8 +221,17 @@ implementation
 	command result_t RoutingNetwork.sendDataMsg(uint16_t dest, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
 	{
 		TOS_Msg new_data_msg = call PacketHandler.assembleDataMessage(dest, data1, data2, data3, data4);
-		uint8_t idx = getKnownBasestation(dest);
+		uint8_t idx;
 		
+		// check if the message goes to the UART
+		if(dest == TOS_UART_ADDR)
+		{
+			dbg(DBG_USR2, "RoutingM: Sending data package over UART\n");
+			return call MessageSender.sendMessage(new_data_msg, TOS_UART_ADDR);
+		}
+		
+		// perform normal sending
+		idx = getKnownBasestation(dest);
 		
 		if(idx < MAX_RT_ENTRIES)
 		{
@@ -243,12 +252,17 @@ implementation
 		if(command_id == CODE_ALARM)
 			alarmstate = TRUE;
 		
-		if( destination_id == TOS_BCAST_ADDR)
+		if(destination_id == TOS_BCAST_ADDR)
 		{
 			dbg(DBG_USR2, "RoutingM: Sending command package as broadcast, command_id = %d, cmd_seq_no = %d\n", destination_id, command_id, cmd_seq_no);
 			return call MessageSender.sendMessage(new_cmd_msg, TOS_BCAST_ADDR);
 		}
-		else
+		else if(destination_id == TOS_UART_ADDR)  // check if the message goes to the UART
+		{
+			dbg(DBG_USR2, "RoutingM: Sending command package over UART\n");
+			return call MessageSender.sendMessage(new_cmd_msg, TOS_UART_ADDR);
+		}
+		else  // perform normal sending
 		{
 			uint8_t idx = getKnownBasestation(destination_id);
 						
