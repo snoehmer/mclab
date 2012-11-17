@@ -26,12 +26,15 @@ module SensorMoteM
 }
 
 implementation
-{		
+{	
+	uint8_t transmit_count;
+		
 	command result_t StdControl.init()
 	{	
 		if(TOS_LOCAL_ADDRESS > NIGHT_GUARD_MAX_ADDR)
 		{
 			dbg(DBG_USR2, "SensorMoteM[%d]: initing", TOS_LOCAL_ADDRESS);
+			transmit_count = 0;
 			return rcombine(call Leds.init(), call RoutingControl.init());
 		}
 		
@@ -45,6 +48,8 @@ implementation
 			call Leds.greenOff();  // I am a sensor node
 			call Leds.redOff();	   // no alarm active at the moment
 			call Leds.yellowOff(); // alarm system not active at the moment
+			
+			transmit_count = 0;
 			
 			dbg(DBG_USR2, "SensorMoteM[%d]: starting", TOS_LOCAL_ADDRESS);
 			
@@ -77,6 +82,13 @@ implementation
 				uint8_t data2 = mean>>8;
 				uint8_t data3 = 0;
 				uint8_t data4 = 0;
+				
+				// reset calculated mean after 4min
+				if(++transmit_count >= 2)
+				{
+					transmit_count = 0;
+					call Sense.resetMean();
+				}
 								
 				if(call RoutingNetwork.isKnownBasestation(SENSOR_NODE_TARGET_BASE_STATION))
 				{

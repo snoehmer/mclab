@@ -5,4 +5,5 @@
 interface Sense
 {
 	command uint16_t getMean();
+	command void resetMean();
 }

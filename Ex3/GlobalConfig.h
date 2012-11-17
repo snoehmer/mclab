@@ -29,11 +29,12 @@ enum
 	SENSOR_NODE_SELECTIVE_ENABLED = 0,		         // enable only a specific sensor node
 	SENSOR_NODE_SELECTIVE_ADDR = 2,			         // address of enabled specific node
 	SENSOR_NODE_DATA_RATE = 120000,	  		         // send sensor data every 120000ms = 2min
+	SENSOR_NODE_RESET_RATE = 2,						 // number after how many sensor data transmissions the mean should be calculated new = 2*2min = 4min
 	SENSOR_NODE_TARGET_BASE_STATION = 0,  	         // base station to send sensor data
 	SENSOR_NODE_TARGET_NIGHT_GUARD = BASE_STATION_MAX_ADDR+1, // night guard to send alarm notification
 	SENSOR_MEASUREMENT_PERIOD = 200,                 // peroidicity of measurements
 	SENSOR_TIME_PERIOD_FOR_AVERAGING_IN_MIN = 4,     // which time period of measurements samples should be taken in consideration for average
-	SENSOR_SIZE_SAMPLE_BUFFER = (SENSOR_TIME_PERIOD_FOR_AVERAGING_IN_MIN*60*1000)/SENSOR_MEASUREMENT_PERIOD,  // size of the sample buffer
+	//SENSOR_SIZE_SAMPLE_BUFFER = (SENSOR_TIME_PERIOD_FOR_AVERAGING_IN_MIN*60*1000)/SENSOR_MEASUREMENT_PERIOD,  // size of the sample buffer
 	SENSOR_ALARM_THRESHOLD = 850,                    // threshold for triggering the alarm
 	SENSOR_NODE_LED_PERIOD = 5,                      // timer for LED blinking, always a multiple of the measurement time
 	
